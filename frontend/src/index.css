@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body { @apply font-body bg-cream text-deep; }
+  h1,h2,h3 { @apply font-display; }
+}
+
+@layer components {
+  .btn-gold { @apply bg-gold text-deep font-semibold px-6 py-3 rounded-full hover:bg-gold-dark transition-all duration-200 active:scale-95; }
+  .btn-outline-gold { @apply border-2 border-gold text-gold font-semibold px-6 py-3 rounded-full hover:bg-gold hover:text-deep transition-all duration-200; }
+  .btn-deep { @apply bg-deep text-gold-light font-semibold px-6 py-3 rounded-full hover:bg-opacity-80 transition-all duration-200; }
+  .card { @apply bg-white rounded-2xl border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300; }
+  .input { @apply w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-gold bg-cream text-deep text-sm; }
+  .badge-new { @apply bg-deep text-gold text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide; }
+  .badge-sale { @apply bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full uppercase; }
+  .badge-hot { @apply bg-gold text-deep text-xs font-bold px-3 py-1 rounded-full uppercase; }
+  .section { @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20; }
+}
+
+* { scroll-behavior: smooth; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #FAF7F2; }
+::-webkit-scrollbar-thumb { background: #C8923A; border-radius: 3px; }
+
+.swiper-pagination-bullet-active { background: #C8923A !important; }
+.swiper-button-next, .swiper-button-prev { color: #C8923A !important; }
+
+@keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+.skeleton { background: linear-gradient(90deg,#f0e8dc 25%,#faf7f2 50%,#f0e8dc 75%); background-size:200% 100%; animation:shimmer 1.5s infinite; }
