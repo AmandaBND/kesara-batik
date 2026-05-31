@@ -76,5 +76,3 @@ export function LoginPage() {
 }
 
 export default LoginPage
-
-function LoginPage() { return <LoginPage /> }

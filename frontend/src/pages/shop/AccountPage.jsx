@@ -63,4 +63,3 @@ export function AccountPage() {
 }
 
 export default AccountPage
-function AccountPage() { return <AccountPage /> }

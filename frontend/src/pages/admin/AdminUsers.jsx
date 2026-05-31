@@ -68,5 +68,5 @@ export function AdminUsers() {
     </div>
   )
 }
+
 export default AdminUsers
-function AdminUsers() { return <AdminUsers /> }

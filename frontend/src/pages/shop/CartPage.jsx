@@ -3,10 +3,17 @@ import { Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { FiTrash2, FiPlus, FiMinus } from 'react-icons/fi'
 import { useCartStore, useCurrencyStore } from '../../store'
+import toast from 'react-hot-toast'
 
 export function CartPage() {
   const { items, removeItem, updateQty, subtotal, shipping, total } = useCartStore()
   const { format } = useCurrencyStore()
+
+  const handleQtyChange = (key, qty) => {
+    const result = updateQty(key, qty)
+    if (result && !result.success) toast.error(result.message)
+    else if (result?.capped) toast(result.message, { icon: '⚠️' })
+  }
 
   return (
     <>
@@ -32,9 +39,9 @@ export function CartPage() {
                     <p className="text-gold font-bold mt-1">{format(item.price)}</p>
                     <div className="flex items-center justify-between mt-3">
                       <div className="flex items-center border rounded-xl overflow-hidden">
-                        <button onClick={() => updateQty(item.key, item.quantity - 1)} className="px-3 py-1.5 hover:bg-cream transition-colors"><FiMinus size={12} /></button>
+                        <button onClick={() => handleQtyChange(item.key, item.quantity - 1)} className="px-3 py-1.5 hover:bg-cream transition-colors"><FiMinus size={12} /></button>
                         <span className="px-3 py-1.5 font-medium min-w-[36px] text-center text-sm">{item.quantity}</span>
-                        <button onClick={() => updateQty(item.key, item.quantity + 1)} className="px-3 py-1.5 hover:bg-cream transition-colors"><FiPlus size={12} /></button>
+                        <button onClick={() => handleQtyChange(item.key, item.quantity + 1)} className="px-3 py-1.5 hover:bg-cream transition-colors"><FiPlus size={12} /></button>
                       </div>
                       <button onClick={() => removeItem(item.key)} className="text-red-400 hover:text-red-600 transition-colors p-2"><FiTrash2 size={16} /></button>
                     </div>
@@ -62,4 +69,3 @@ export function CartPage() {
 }
 
 export default CartPage
-function CartPage() { return <CartPage /> }

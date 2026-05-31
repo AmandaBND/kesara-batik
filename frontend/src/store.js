@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { getAvailableStock, findVariant, hasVariants, getCartQtyForVariant } from './utils/stock'
 
 // ─── Auth Store ───────────────────────────────────────────
 export const useAuthStore = create(persist((set, get) => ({
@@ -16,24 +17,64 @@ export const useCartStore = create(persist((set, get) => ({
   isOpen: false,
 
   addItem: (product, variant = {}, qty = 1) => {
-    const key = `${product._id}-${variant.size || ''}-${variant.color || ''}`;
+    if (hasVariants(product)) {
+      if (!findVariant(product, variant)) {
+        return { success: false, message: 'Please select a valid size and color combination' };
+      }
+    }
+
+    const available = getAvailableStock(product, variant);
     const items = get().items;
+    const key = `${product._id}-${variant.size || ''}-${variant.color || ''}`;
     const idx = items.findIndex(i => i.key === key);
+    const currentQty = idx > -1 ? items[idx].quantity : 0;
+    const requestedTotal = currentQty + qty;
+
+    if (available === 0) {
+      return { success: false, message: 'This item is out of stock' };
+    }
+    if (requestedTotal > available) {
+      const canAdd = available - currentQty;
+      if (canAdd <= 0) {
+        return { success: false, message: `Only ${available} available in stock` };
+      }
+      qty = canAdd;
+    }
+
     if (idx > -1) {
       const updated = [...items];
       updated[idx].quantity += qty;
-      set({ items: updated });
+      set({ items: updated, isOpen: true });
     } else {
-      set({ items: [...items, { key, product, variant, quantity: qty, price: product.price }] });
+      set({ items: [...items, { key, product, variant, quantity: qty, price: product.price }], isOpen: true });
     }
-    set({ isOpen: true });
+
+    const capped = requestedTotal > available;
+    return {
+      success: true,
+      message: capped ? `Only ${available} available — quantity adjusted` : 'Added to cart',
+      capped,
+    };
   },
 
   removeItem: (key) => set({ items: get().items.filter(i => i.key !== key) }),
 
   updateQty: (key, qty) => {
     if (qty <= 0) return get().removeItem(key);
+    const item = get().items.find(i => i.key === key);
+    if (!item) return { success: false, message: 'Item not found in cart' };
+
+    const available = getAvailableStock(item.product, item.variant);
+    if (available === 0) {
+      get().removeItem(key);
+      return { success: false, message: 'This item is out of stock and was removed from your cart' };
+    }
+    if (qty > available) {
+      set({ items: get().items.map(i => i.key === key ? { ...i, quantity: available } : i) });
+      return { success: false, message: `Only ${available} available in stock`, capped: true };
+    }
     set({ items: get().items.map(i => i.key === key ? { ...i, quantity: qty } : i) });
+    return { success: true };
   },
 
   clear: () => set({ items: [] }),
@@ -60,13 +101,15 @@ export const useWishlistStore = create(persist((set, get) => ({
 }), { name: 'kb-wishlist' }))
 
 // ─── Currency Store ────────────────────────────────────────
-export const useCurrencyStore = create(persist((set) => ({
+export const useCurrencyStore = create(persist((set, get) => ({
   currency: 'CAD',
   rates: { CAD: 1, USD: 0.74, GBP: 0.58, AED: 2.72, LKR: 225, JPY: 110, KRW: 1000 },
   symbols: { CAD: 'CA$', USD: 'US$', GBP: '£', AED: 'AED ', LKR: 'LKR ', JPY: '¥', KRW: '₩' },
+  lastUpdated: null,
   setCurrency: (currency) => set({ currency }),
+  setRates: (rates, lastUpdated) => set({ rates, lastUpdated }),
   format: (cadPrice) => {
-    const state = useCurrencyStore.getState();
+    const state = get();
     const converted = cadPrice * (state.rates[state.currency] || 1);
     const sym = state.symbols[state.currency] || state.currency + ' ';
     return sym + converted.toFixed(2);

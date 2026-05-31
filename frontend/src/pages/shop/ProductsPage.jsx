@@ -48,7 +48,7 @@ export default function ProductsPage() {
     fetch()
   }, [category, parentCategory, search, newArrival, featured, sort, page, priceRange])
 
-  const title = parentCategory || category || (search ? `Search: "${search}"`) || (newArrival ? 'New Arrivals' : 'All Products')
+  const title = parentCategory || category || (search ? `Search: "${search}"` : null) || (newArrival ? 'New Arrivals' : 'All Products')
 
   return (
     <>

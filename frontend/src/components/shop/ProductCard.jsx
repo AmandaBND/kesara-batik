@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { FiHeart, FiShoppingCart, FiStar } from 'react-icons/fi'
 import { useCartStore, useWishlistStore, useCurrencyStore } from '../../store'
+import { getAvailableStock, hasVariants } from '../../utils/stock'
 import toast from 'react-hot-toast'
 
 export default function ProductCard({ product }) {
@@ -10,6 +11,23 @@ export default function ProductCard({ product }) {
   const { format } = useCurrencyStore()
   const wishlisted = has(product._id)
   const discount = product.comparePrice ? Math.round((1 - product.price / product.comparePrice) * 100) : 0
+  const variantProduct = hasVariants(product)
+  const stock = getAvailableStock(product)
+  const outOfStock = stock === 0
+
+  const handleQuickAdd = () => {
+    if (variantProduct) {
+      toast('Please select size and color on the product page', { icon: 'ℹ️' })
+      return
+    }
+    if (outOfStock) {
+      toast.error('This item is out of stock')
+      return
+    }
+    const result = addItem(product)
+    if (!result.success) toast.error(result.message)
+    else toast.success(`${product.name.slice(0, 25)}... added!`)
+  }
 
   return (
     <motion.div whileHover={{ y: -6 }} className="card group bg-white overflow-hidden">
@@ -38,10 +56,11 @@ export default function ProductCard({ product }) {
         {/* Quick Add */}
         <div className="absolute bottom-0 left-0 right-0 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
           <button
-            onClick={() => { addItem(product); toast.success(`${product.name.slice(0,25)}... added!`) }}
-            className="w-full bg-deep text-gold py-3 text-sm font-semibold flex items-center justify-center gap-2 hover:bg-gold hover:text-deep transition-colors"
+            onClick={handleQuickAdd}
+            disabled={outOfStock && !variantProduct}
+            className="w-full bg-deep text-gold py-3 text-sm font-semibold flex items-center justify-center gap-2 hover:bg-gold hover:text-deep transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <FiShoppingCart size={16} /> Quick Add to Cart
+            <FiShoppingCart size={16} /> {outOfStock && !variantProduct ? 'Out of Stock' : variantProduct ? 'Select Options' : 'Quick Add to Cart'}
           </button>
         </div>
       </div>

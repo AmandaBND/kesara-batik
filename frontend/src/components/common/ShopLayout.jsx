@@ -3,6 +3,8 @@ import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useCartStore, useAuthStore, useWishlistStore, useCurrencyStore } from '../../store'
 import { FiShoppingCart, FiHeart, FiUser, FiSearch, FiMenu, FiX, FiChevronDown, FiTrash2, FiPlus, FiMinus } from 'react-icons/fi'
+import api from '../../utils/api'
+import toast from 'react-hot-toast'
 
 const CATEGORIES = {
   Women: ["Women's Saree", "Women's Lungi", "Batik Kandyan designs", "Batik Frocks", "Batik Tops & Skirts", "Batik Tops & Pants", "Batik Kurtha Sets", "Batik Kaftan"],
@@ -16,10 +18,27 @@ export default function ShopLayout() {
   const { items, isOpen, closeCart, toggleCart, removeItem, updateQty, subtotal, itemCount, shipping, total } = useCartStore()
   const { user, logout } = useAuthStore()
   const { items: wishlist } = useWishlistStore()
-  const { currency, setCurrency, format } = useCurrencyStore()
+  const { currency, setCurrency, format, setRates } = useCurrencyStore()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [search, setSearch] = useState('')
   const navigate = useNavigate()
+
+  useEffect(() => {
+    const fetchRates = () => {
+      api.get('/currency/rates').then(data => {
+        if (data?.rates) setRates(data.rates, data.updatedAt)
+      }).catch(() => {})
+    }
+    fetchRates()
+    const interval = setInterval(fetchRates, 60 * 60 * 1000)
+    return () => clearInterval(interval)
+  }, [setRates])
+
+  const handleQtyChange = (key, qty) => {
+    const result = updateQty(key, qty)
+    if (result && !result.success) toast.error(result.message)
+    else if (result?.capped) toast(result.message, { icon: '⚠️' })
+  }
 
   const handleSearch = (e) => {
     e.preventDefault()
@@ -225,9 +244,9 @@ export default function ShopLayout() {
                       {item.variant.size && <p className="text-xs text-gray-500">Size: {item.variant.size}</p>}
                       <p className="text-gold font-bold mt-1">{format(item.price)}</p>
                       <div className="flex items-center gap-2 mt-2">
-                        <button onClick={() => updateQty(item.key, item.quantity - 1)} className="w-7 h-7 border rounded-full flex items-center justify-center hover:border-gold hover:text-gold transition-colors"><FiMinus size={12} /></button>
+                        <button onClick={() => handleQtyChange(item.key, item.quantity - 1)} className="w-7 h-7 border rounded-full flex items-center justify-center hover:border-gold hover:text-gold transition-colors"><FiMinus size={12} /></button>
                         <span className="text-sm font-medium w-6 text-center">{item.quantity}</span>
-                        <button onClick={() => updateQty(item.key, item.quantity + 1)} className="w-7 h-7 border rounded-full flex items-center justify-center hover:border-gold hover:text-gold transition-colors"><FiPlus size={12} /></button>
+                        <button onClick={() => handleQtyChange(item.key, item.quantity + 1)} className="w-7 h-7 border rounded-full flex items-center justify-center hover:border-gold hover:text-gold transition-colors"><FiPlus size={12} /></button>
                         <button onClick={() => removeItem(item.key)} className="ml-auto text-red-400 hover:text-red-600 transition-colors"><FiTrash2 size={14} /></button>
                       </div>
                     </div>

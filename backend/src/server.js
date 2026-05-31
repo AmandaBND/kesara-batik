@@ -41,6 +41,7 @@ app.use('/api/payments', require('./routes/paymentRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
 app.use('/api/reports', require('./routes/reportRoutes'));
 app.use('/api/categories', require('./routes/categoryRoutes'));
+app.use('/api/currency', require('./routes/currencyRoutes'));
 
 // Health Check
 app.get('/api/health', (req, res) => res.json({ status: 'OK', name: 'Kesara Batik API', version: '1.0.0' }));
@@ -59,6 +60,13 @@ cron.schedule('0 9 20 * *', async () => {
   const { generateMonthlyStatement } = require('./utils/reportGenerator');
   await generateMonthlyStatement();
   console.log('Monthly statement generated and emailed.');
+});
+
+// CRON: Update exchange rates every hour
+const { updateExchangeRates } = require('./services/exchangeRateService');
+updateExchangeRates();
+cron.schedule('0 * * * *', async () => {
+  await updateExchangeRates();
 });
 
 const PORT = process.env.PORT || 5000;
