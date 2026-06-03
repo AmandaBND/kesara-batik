@@ -106,12 +106,45 @@ export const useCurrencyStore = create(persist((set, get) => ({
   rates: { CAD: 1, USD: 0.74, GBP: 0.58, AED: 2.72, LKR: 225, JPY: 110, KRW: 1000 },
   symbols: { CAD: 'CA$', USD: 'US$', GBP: '£', AED: 'AED ', LKR: 'LKR ', JPY: '¥', KRW: '₩' },
   lastUpdated: null,
-  setCurrency: (currency) => set({ currency }),
-  setRates: (rates, lastUpdated) => set({ rates, lastUpdated }),
-  format: (cadPrice) => {
+  isFromSriLanka: false,
+  currencyLocked: false,
+  
+  setCurrency: (currency) => {
     const state = get();
-    const converted = cadPrice * (state.rates[state.currency] || 1);
+    // Sri Lankan users must always use LKR, cannot select other currencies
+    if (state.isFromSriLanka && currency !== 'LKR') {
+      return;
+    }
+    set({ currency });
+  },
+  
+  setRates: (rates, lastUpdated) => set({ rates, lastUpdated }),
+  
+  lockCurrency: (lock = true) => set({ currencyLocked: lock }),
+  
+  setCountryInfo: (isFromSriLanka) => {
+    if (isFromSriLanka) {
+      set({ 
+        isFromSriLanka: true, 
+        currency: 'LKR', 
+        currencyLocked: true 
+      });
+    } else {
+      set({ isFromSriLanka: false });
+    }
+  },
+  
+  format: (cadPrice, currentProduct = null) => {
+    const state = get();
     const sym = state.symbols[state.currency] || state.currency + ' ';
+    
+    // If LKR and product has manual LKR price, use it instead of exchange rate
+    if (state.currency === 'LKR' && currentProduct?.priceLKR) {
+      return sym + currentProduct.priceLKR.toFixed(2);
+    }
+    
+    // Otherwise use exchange rate (CAD price * conversion rate)
+    const converted = cadPrice * (state.rates[state.currency] || 1);
     return sym + converted.toFixed(2);
   },
 }), { name: 'kb-currency' }))

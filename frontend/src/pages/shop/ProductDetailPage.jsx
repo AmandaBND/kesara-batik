@@ -146,8 +146,8 @@ export default function ProductDetailPage() {
             )}
 
             <div className="flex items-center gap-3 mb-6">
-              <span className="font-display text-3xl font-bold text-deep">{format(product.price)}</span>
-              {product.comparePrice && <span className="text-lg text-gray-400 line-through">{format(product.comparePrice)}</span>}
+              <span className="font-display text-3xl font-bold text-deep">{format(product.price, product)}</span>
+              {product.comparePrice && <span className="text-lg text-gray-400 line-through">{format(product.comparePrice, product)}</span>}
               {discount > 0 && <span className="badge-sale">-{discount}%</span>}
             </div>
 

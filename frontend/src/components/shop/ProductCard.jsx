@@ -79,8 +79,8 @@ export default function ProductCard({ product }) {
         )}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-lg font-bold text-deep font-display">{format(product.price)}</span>
-            {product.comparePrice && <span className="text-sm text-gray-400 line-through">{format(product.comparePrice)}</span>}
+            <span className="text-lg font-bold text-deep font-display">{format(product.price, product)}</span>
+            {product.comparePrice && <span className="text-sm text-gray-400 line-through">{format(product.comparePrice, product)}</span>}
           </div>
           <span className="text-xs text-gray-500 capitalize">{product.fabric || ''}</span>
         </div>

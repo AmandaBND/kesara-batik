@@ -145,7 +145,7 @@ export default function CheckoutPage() {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{item.product.name}</p>
                       {item.variant?.size && <p className="text-xs text-gray-400">Size: {item.variant.size}</p>}
-                      <p className="text-sm font-bold text-gold">{format(item.price)} × {item.quantity}</p>
+                      <p className="text-sm font-bold text-gold">{format(item.price, item.product)} × {item.quantity}</p>
                     </div>
                   </div>
                 ))}

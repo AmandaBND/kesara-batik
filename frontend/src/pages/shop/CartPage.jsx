@@ -36,7 +36,7 @@ export function CartPage() {
                     <h3 className="font-semibold text-deep">{item.product.name}</h3>
                     {item.variant?.size && <p className="text-sm text-gray-500 mt-0.5">Size: {item.variant.size}</p>}
                     {item.variant?.color && <p className="text-sm text-gray-500">Color: {item.variant.color}</p>}
-                    <p className="text-gold font-bold mt-1">{format(item.price)}</p>
+                    <p className="text-gold font-bold mt-1">{format(item.price, item.product)}</p>
                     <div className="flex items-center justify-between mt-3">
                       <div className="flex items-center border rounded-xl overflow-hidden">
                         <button onClick={() => handleQtyChange(item.key, item.quantity - 1)} className="px-3 py-1.5 hover:bg-cream transition-colors"><FiMinus size={12} /></button>
@@ -46,7 +46,7 @@ export function CartPage() {
                       <button onClick={() => removeItem(item.key)} className="text-red-400 hover:text-red-600 transition-colors p-2"><FiTrash2 size={16} /></button>
                     </div>
                   </div>
-                  <div className="text-right"><p className="font-bold text-deep font-display">{format(item.price * item.quantity)}</p></div>
+                  <div className="text-right"><p className="font-bold text-deep font-display">{format(item.price * item.quantity, item.product)}</p></div>
                 </div>
               ))}
             </div>

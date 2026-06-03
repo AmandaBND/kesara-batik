@@ -25,6 +25,7 @@ const productSchema = new mongoose.Schema({
   price: { type: Number, required: true, min: 0 },
   comparePrice: { type: Number, min: 0 }, // strike-through price
   currency: { type: String, default: 'CAD' },
+  priceLKR: { type: Number, min: 0 }, // Manual LKR price (not exchange-based)
   category: { type: String, required: true, enum: [
     "Women's Saree", "Women's Lungi", "Batik Kandyan designs",
     "Batik Frocks", "Batik Tops & Skirts", "Batik Tops & Pants",

@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useCartStore, useAuthStore, useWishlistStore, useCurrencyStore } from '../../store'
 import { FiShoppingCart, FiHeart, FiUser, FiSearch, FiMenu, FiX, FiChevronDown, FiTrash2, FiPlus, FiMinus } from 'react-icons/fi'
 import api from '../../utils/api'
+import { detectCountry } from '../../utils/geolocation'
 import toast from 'react-hot-toast'
 
 const CATEGORIES = {
@@ -18,10 +19,25 @@ export default function ShopLayout() {
   const { items, isOpen, closeCart, toggleCart, removeItem, updateQty, subtotal, itemCount, shipping, total } = useCartStore()
   const { user, logout } = useAuthStore()
   const { items: wishlist } = useWishlistStore()
-  const { currency, setCurrency, format, setRates } = useCurrencyStore()
+  const { currency, setCurrency, format, setRates, isFromSriLanka, currencyLocked, setCountryInfo } = useCurrencyStore()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [search, setSearch] = useState('')
   const navigate = useNavigate()
+
+  useEffect(() => {
+    // Detect user's country on first load
+    const detectAndSetLocation = async () => {
+      const geo = await detectCountry()
+      setCountryInfo(geo.isFromSriLanka)
+      
+      if (geo.isFromSriLanka) {
+        setCurrency('LKR')
+        toast.success('Welcome! Currency locked to LKR 🇱🇰', { duration: 2 })
+      }
+    }
+    
+    detectAndSetLocation()
+  }, [setCountryInfo, setCurrency])
 
   useEffect(() => {
     const fetchRates = () => {
@@ -75,9 +91,12 @@ export default function ShopLayout() {
 
             {/* Actions */}
             <div className="flex items-center gap-2 sm:gap-4">
-              <select value={currency} onChange={e => setCurrency(e.target.value)} className="text-xs border border-gray-200 rounded-lg px-2 py-1 bg-cream focus:outline-none hidden sm:block">
-                {['CAD','USD','GBP','AED','LKR','JPY','KRW'].map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
+              <div className="flex items-center gap-2">
+                <select value={currency} onChange={e => setCurrency(e.target.value)} disabled={currencyLocked} className={`text-xs border border-gray-200 rounded-lg px-2 py-1 bg-cream focus:outline-none hidden sm:block ${currencyLocked ? 'opacity-60 cursor-not-allowed' : ''}`}>
+                  {['CAD','USD','GBP','AED',...(isFromSriLanka ? ['LKR'] : []),'JPY','KRW'].map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+                {currencyLocked && <span className="text-xs text-gold font-semibold hidden sm:block" title="Currency locked for Sri Lanka">🔒</span>}
+              </div>
 
               <Link to="/wishlist" className="relative p-2 text-deep hover:text-gold transition-colors hidden sm:block">
                 <FiHeart size={20} />

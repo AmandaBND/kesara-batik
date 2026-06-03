@@ -16,7 +16,7 @@ const SIZES = ['XS','S','M','L','XL','XXL','XXXL','Free Size','2Y','4Y','6Y','8Y
 
 const FORM_FIELDS = [
   'name', 'nameLocal', 'sku', 'description', 'shortDescription',
-  'price', 'comparePrice', 'category', 'parentCategory',
+  'price', 'priceLKR', 'comparePrice', 'category', 'parentCategory',
   'fabric', 'length', 'width', 'care',
   'isFeatured', 'isNewArrival', 'isTrending', 'isActive',
   'stockCount', 'weight',
@@ -36,7 +36,7 @@ export default function AdminProductForm() {
 
   const [form, setForm] = useState({
     name: '', nameLocal: '', sku: '', description: '', shortDescription: '',
-    price: '', comparePrice: '', category: '', parentCategory: '',
+    price: '', priceLKR: '', comparePrice: '', category: '', parentCategory: '',
     fabric: '', length: '', width: '', care: '',
     isFeatured: false, isNewArrival: true, isTrending: false, isActive: true,
     stockCount: 0, weight: '',
@@ -58,6 +58,7 @@ export default function AdminProductForm() {
         description: p.description || '',
         shortDescription: p.shortDescription || '',
         price: p.price ?? '',
+        priceLKR: p.priceLKR ?? '',
         comparePrice: p.comparePrice ?? '',
         category: p.category || '',
         parentCategory: p.parentCategory || '',
@@ -199,6 +200,7 @@ export default function AdminProductForm() {
               </select>
             </div>
             <div><label className="label">Price (CAD) *</label><input type="number" required min="0" step="0.01" value={form.price} onChange={e => set('price', e.target.value)} className="input" placeholder="89.00" /></div>
+            <div><label className="label">Price (LKR - Manual)</label><input type="number" min="0" step="0.01" value={form.priceLKR} onChange={e => set('priceLKR', e.target.value)} className="input" placeholder="25000.00" /></div>
             <div><label className="label">Compare Price (CAD)</label><input type="number" min="0" step="0.01" value={form.comparePrice} onChange={e => set('comparePrice', e.target.value)} className="input" placeholder="Original price (optional)" /></div>
             <div><label className="label">Stock Count</label><input type="number" min="0" value={form.stockCount} onChange={e => set('stockCount', e.target.value)} className="input" /></div>
           </div>
