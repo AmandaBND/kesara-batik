@@ -1,10 +1,10 @@
-// RegisterPage.jsx
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { useAuthStore } from '../../store'
 import api from '../../utils/api'
 import toast from 'react-hot-toast'
+import GoogleSignInButton from '../../components/auth/GoogleSignInButton'
 
 export default function RegisterPage() {
   const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '' })
@@ -25,6 +25,12 @@ export default function RegisterPage() {
     finally { setLoading(false) }
   }
 
+  const handleGoogleSuccess = (data) => {
+    setAuth(data.user, data.token)
+    toast.success(`Welcome, ${data.user.name}! 🎉`)
+    navigate('/')
+  }
+
   return (
     <>
       <Helmet><title>Create Account | Kesara Batik</title></Helmet>
@@ -43,7 +49,9 @@ export default function RegisterPage() {
               <div><label className="text-sm font-semibold block mb-1">Confirm Password</label><input type="password" required value={form.confirm} onChange={e => setForm(f => ({...f, confirm: e.target.value}))} className="input" placeholder="Repeat password" /></div>
               <button type="submit" disabled={loading} className="btn-gold w-full py-4">{loading ? 'Creating account...' : 'Create Account'}</button>
             </form>
-            <p className="text-center text-sm text-gray-500 mt-4">Already have an account? <Link to="/login" className="text-gold font-semibold">Login</Link></p>
+            <div className="relative my-4"><div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200" /></div><div className="relative flex justify-center"><span className="bg-white px-3 text-xs text-gray-500">OR</span></div></div>
+            <GoogleSignInButton context="signup" text="signup_with" onSuccess={handleGoogleSuccess} />
+            <p className="text-center text-sm text-gray-500 mt-4">Already have an account? <Link to="/login" className="text-gold font-semibold hover:underline">Login</Link></p>
           </div>
         </div>
       </div>

@@ -5,6 +5,7 @@ import { useCartStore, useAuthStore, useWishlistStore, useCurrencyStore } from '
 import { FiShoppingCart, FiHeart, FiUser, FiSearch, FiMenu, FiX, FiChevronDown, FiTrash2, FiPlus, FiMinus } from 'react-icons/fi'
 import api from '../../utils/api'
 import { detectCountry } from '../../utils/geolocation'
+import { getUnitPrice } from '../../utils/pricing'
 import toast from 'react-hot-toast'
 
 const CATEGORIES = {
@@ -19,7 +20,7 @@ export default function ShopLayout() {
   const { items, isOpen, closeCart, toggleCart, removeItem, updateQty, subtotal, itemCount, shipping, total } = useCartStore()
   const { user, logout } = useAuthStore()
   const { items: wishlist } = useWishlistStore()
-  const { currency, setCurrency, format, setRates, isFromSriLanka, currencyLocked, setCountryInfo } = useCurrencyStore()
+  const { currency, setCurrency, formatAmount, setRates, isFromSriLanka, currencyLocked, setCountryInfo, rates } = useCurrencyStore()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [search, setSearch] = useState('')
   const navigate = useNavigate()
@@ -261,7 +262,7 @@ export default function ShopLayout() {
                     <div className="flex-1 min-w-0">
                       <h4 className="text-sm font-semibold truncate">{item.product.name}</h4>
                       {item.variant.size && <p className="text-xs text-gray-500">Size: {item.variant.size}</p>}
-                      <p className="text-gold font-bold mt-1">{format(item.price)}</p>
+                      <p className="text-gold font-bold mt-1">{formatAmount(getUnitPrice(item.product, currency, rates))}</p>
                       <div className="flex items-center gap-2 mt-2">
                         <button onClick={() => handleQtyChange(item.key, item.quantity - 1)} className="w-7 h-7 border rounded-full flex items-center justify-center hover:border-gold hover:text-gold transition-colors"><FiMinus size={12} /></button>
                         <span className="text-sm font-medium w-6 text-center">{item.quantity}</span>
@@ -276,9 +277,9 @@ export default function ShopLayout() {
               {items.length > 0 && (
                 <div className="p-6 border-t bg-white">
                   <div className="space-y-2 mb-4 text-sm">
-                    <div className="flex justify-between text-gray-600"><span>Subtotal</span><span>{format(subtotal())}</span></div>
-                    <div className="flex justify-between text-gray-600"><span>Shipping</span><span>{shipping() === 0 ? <span className="text-green-600 font-semibold">FREE 🎉</span> : format(shipping())}</span></div>
-                    <div className="flex justify-between font-bold text-lg border-t pt-2"><span>Total</span><span className="text-gold">{format(total())}</span></div>
+                    <div className="flex justify-between text-gray-600"><span>Subtotal</span><span>{formatAmount(subtotal())}</span></div>
+                    <div className="flex justify-between text-gray-600"><span>Shipping</span><span>{currency === 'LKR' ? formatAmount(shipping()) : shipping() === 0 ? <span className="text-green-600 font-semibold">FREE 🎉</span> : formatAmount(shipping())}</span></div>
+                    <div className="flex justify-between font-bold text-lg border-t pt-2"><span>Total</span><span className="text-gold">{formatAmount(total())}</span></div>
                   </div>
                   <Link to="/checkout" onClick={closeCart} className="btn-gold w-full block text-center">Checkout →</Link>
                   <p className="text-center text-xs text-gray-400 mt-3">🔒 Secure checkout · Stripe & PayPal</p>

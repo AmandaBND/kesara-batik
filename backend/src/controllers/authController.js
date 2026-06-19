@@ -3,7 +3,22 @@ const { OAuth2Client } = require('google-auth-library');
 const User = require('../models/User');
 const { generateToken } = require('../middleware/auth');
 
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+let client;
+const getGoogleAudiences = () => {
+  const raw = process.env.GOOGLE_CLIENT_ID || '';
+  return raw.split(',').map(id => id.trim()).filter(Boolean);
+};
+
+const audiences = getGoogleAudiences();
+if (!audiences.length) {
+  console.warn('⚠️  GOOGLE_CLIENT_ID not set — Google Sign-In will not work');
+} else {
+  try {
+    client = new OAuth2Client(audiences[0]);
+  } catch (err) {
+    console.error('❌ Failed to initialize Google OAuth Client:', err.message);
+  }
+}
 
 // POST /api/auth/register
 exports.register = asyncHandler(async (req, res) => {
@@ -29,19 +44,73 @@ exports.login = asyncHandler(async (req, res) => {
 // POST /api/auth/google
 exports.googleAuth = asyncHandler(async (req, res) => {
   const { credential } = req.body;
-  const ticket = await client.verifyIdToken({ idToken: credential, audience: process.env.GOOGLE_CLIENT_ID });
-  const { sub: googleId, email, name, picture } = ticket.getPayload();
 
-  let user = await User.findOne({ $or: [{ googleId }, { email }] });
-  if (!user) {
-    user = await User.create({ name, email, googleId, avatar: picture, isVerified: true });
-  } else {
-    user.googleId = googleId;
-    user.avatar = user.avatar || picture;
-    user.lastLogin = new Date();
-    await user.save();
+  if (!credential) {
+    return res.status(400).json({ message: 'Google credential is required' });
   }
-  res.json({ user, token: generateToken(user._id) });
+
+  if (!process.env.GOOGLE_CLIENT_ID) {
+    return res.status(503).json({ message: 'Google authentication is not configured on the server' });
+  }
+
+  if (!client) {
+    return res.status(503).json({ message: 'Google authentication service not available' });
+  }
+
+  const allowedAudiences = getGoogleAudiences();
+
+  try {
+    const ticket = await client.verifyIdToken({
+      idToken: credential,
+      audience: allowedAudiences.length > 1 ? allowedAudiences : allowedAudiences[0],
+    });
+
+    const payload = ticket.getPayload();
+    const { sub: googleId, email, name, picture, email_verified: emailVerified } = payload;
+
+    if (!googleId || !email) {
+      return res.status(400).json({ message: 'Invalid Google profile data' });
+    }
+
+    if (emailVerified === false) {
+      return res.status(401).json({ message: 'Google email address is not verified' });
+    }
+
+    let user = await User.findOne({ $or: [{ googleId }, { email: email.toLowerCase() }] });
+
+    if (!user) {
+      user = await User.create({
+        name: name || email.split('@')[0],
+        email: email.toLowerCase(),
+        googleId,
+        avatar: picture || '',
+        isVerified: true,
+        isActive: true,
+      });
+    } else {
+      if (!user.isActive) {
+        return res.status(403).json({ message: 'Account deactivated' });
+      }
+      user.googleId = googleId;
+      if (picture && !user.avatar) user.avatar = picture;
+      if (name && !user.name) user.name = name;
+      user.lastLogin = new Date();
+      await user.save();
+    }
+
+    res.json({ user, token: generateToken(user._id) });
+  } catch (err) {
+    console.error('❌ Google auth verification error:', err.message);
+
+    if (err.message?.includes('Token used too early') || err.message?.includes('Token used too late')) {
+      return res.status(401).json({ message: 'Google token expired. Please try again.' });
+    }
+    if (err.message?.includes('audience') || err.message?.includes('Audience')) {
+      return res.status(401).json({ message: 'Google authentication failed. Client ID mismatch.' });
+    }
+
+    return res.status(401).json({ message: 'Google authentication failed. Invalid token.' });
+  }
 });
 
 // GET /api/auth/me

@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { getAvailableStock, findVariant, hasVariants, getCartQtyForVariant } from './utils/stock'
+import { getCartSubtotal, getShipping, getCartTotal } from './utils/pricing'
 
 // ─── Auth Store ───────────────────────────────────────────
 export const useAuthStore = create(persist((set, get) => ({
@@ -82,10 +83,19 @@ export const useCartStore = create(persist((set, get) => ({
   openCart: () => set({ isOpen: true }),
   closeCart: () => set({ isOpen: false }),
 
-  subtotal: () => get().items.reduce((s, i) => s + i.price * i.quantity, 0),
+  subtotal: () => {
+    const { currency, rates } = useCurrencyStore.getState()
+    return getCartSubtotal(get().items, currency, rates)
+  },
   itemCount: () => get().items.reduce((s, i) => s + i.quantity, 0),
-  shipping: () => get().subtotal() > 120 ? 0 : 18,
-  total: () => get().subtotal() + get().shipping(),
+  shipping: () => {
+    const { currency, rates } = useCurrencyStore.getState()
+    return getShipping(get().items, currency, rates)
+  },
+  total: () => {
+    const { currency, rates } = useCurrencyStore.getState()
+    return getCartTotal(get().items, currency, rates)
+  },
 }), { name: 'kb-cart' }))
 
 // ─── Wishlist Store ────────────────────────────────────────
@@ -135,16 +145,20 @@ export const useCurrencyStore = create(persist((set, get) => ({
   },
   
   format: (cadPrice, currentProduct = null) => {
-    const state = get();
-    const sym = state.symbols[state.currency] || state.currency + ' ';
-    
-    // If LKR and product has manual LKR price, use it instead of exchange rate
-    if (state.currency === 'LKR' && currentProduct?.priceLKR) {
-      return sym + currentProduct.priceLKR.toFixed(2);
+    const state = get()
+    const sym = state.symbols[state.currency] || state.currency + ' '
+
+    if (state.currency === 'LKR' && currentProduct?.priceLKR != null && currentProduct.priceLKR > 0) {
+      return sym + Number(currentProduct.priceLKR).toFixed(2)
     }
-    
-    // Otherwise use exchange rate (CAD price * conversion rate)
-    const converted = cadPrice * (state.rates[state.currency] || 1);
-    return sym + converted.toFixed(2);
+
+    const converted = cadPrice * (state.rates[state.currency] || 1)
+    return sym + converted.toFixed(2)
+  },
+
+  formatAmount: (amount) => {
+    const state = get()
+    const sym = state.symbols[state.currency] || state.currency + ' '
+    return sym + Number(amount).toFixed(2)
   },
 }), { name: 'kb-currency' }))
