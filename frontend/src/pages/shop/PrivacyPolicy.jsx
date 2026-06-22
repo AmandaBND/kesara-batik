@@ -8,7 +8,7 @@ export default function PrivacyPolicy() {
         <meta name="description" content="Kesara Batik Privacy Policy" />
       </Helmet>
 
-      <h1 className="font-display text-3xl text-deep font-bold mb-4">Kesara Batik Privacy Policy</h1>
+      <h1 className="font-display text-3xl text-deep font-bold mb-4">Privacy Policy</h1>
       <p className="text-sm text-gray-600 mb-6">Effective Date: June 23, 2026 · Last Updated: June 23, 2026</p>
 
       <p className="mb-4">Welcome to Kesara Batik! We create authentic, high-quality batik clothing in Sri Lanka and deliver our handcrafted creations worldwide. Protecting your privacy is important to us, and we are committed to handling your personal information responsibly and securely.</p>

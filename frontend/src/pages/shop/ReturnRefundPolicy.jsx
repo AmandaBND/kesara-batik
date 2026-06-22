@@ -8,7 +8,7 @@ export default function ReturnRefundPolicy() {
         <meta name="description" content="Kesara Batik Return & Refund Policy" />
       </Helmet>
 
-      <h1 className="font-display text-3xl text-deep font-bold mb-4">Kesara Batik Refund & Return Policy</h1>
+      <h1 className="font-display text-3xl text-deep font-bold mb-4">Refund & Return Policy</h1>
 
       <p className="mb-4">At Kesara Batik, every garment is handcrafted using traditional Sri Lankan batik techniques. Slight variations in color and patterns are natural characteristics of handmade batik and make each piece unique.</p>
 

@@ -8,7 +8,7 @@ export default function TermsAndConditions() {
         <meta name="description" content="Kesara Batik Terms & Conditions" />
       </Helmet>
 
-      <h1 className="font-display text-3xl text-deep font-bold mb-4">Kesara Batik Terms & Conditions</h1>
+      <h1 className="font-display text-3xl text-deep font-bold mb-4">Terms & Conditions</h1>
 
       <p className="mb-4">Welcome to Kesara Batik. By accessing our website or placing an order, you agree to the following Terms and Conditions.</p>
 
