@@ -222,8 +222,8 @@ export default function ShopLayout() {
           <div>
             <h4 className="text-gold text-xs font-bold uppercase tracking-widest mb-4">Contact</h4>
             <div className="space-y-3 text-sm">
-              <p>📱 WhatsApp: +94 XX XXX XXXX</p>
-              <p>✉️ hello@kesarabatik.com</p>
+              <p>📱 WhatsApp: +94 77 488 1013</p>
+              <p>✉️ kesarabatik.info@gmail.com</p>
               <p>📍 Colombo, Sri Lanka 🇱🇰</p>
               <p className="text-xs text-gray-600 mt-4">Shipping to 🇨🇦 Canada · 🇺🇸 USA · 🇦🇪 UAE · 🇬🇧 UK · 🇯🇵 Japan · 🇰🇷 Korea & more</p>
             </div>
