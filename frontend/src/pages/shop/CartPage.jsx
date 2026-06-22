@@ -69,4 +69,4 @@ export function CartPage() {
   )
 }
 
-export default CartPage
+

@@ -75,7 +75,7 @@ export default function ShopLayout() {
           <div className="flex items-center justify-between h-16 gap-4">
             {/* Logo */}
             <Link to="/" className="flex items-center gap-3 shrink-0">
-              <img src="/logo.png" alt="Kesara Batik" className="h-10 w-10 object-contain" />
+              <img src="../../assets/logo.png" alt="Kesara Batik" className="h-10 w-10 object-contain" />
               <div className="hidden sm:block">
                 <div className="font-display text-lg font-bold text-deep leading-tight">කේසර බතික්</div>
                 <div className="text-xs text-gold font-medium tracking-widest">KESARA BATIK</div>
