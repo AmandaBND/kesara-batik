@@ -79,4 +79,4 @@ export function AdminReviews() {
   )
 }
 
-
+export default AdminReviews
