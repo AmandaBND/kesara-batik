@@ -210,7 +210,7 @@ export default function ShopLayout() {
           </div>
           {[
             { title: 'Shop', links: [['Women', '/products?parentCategory=Women'], ["Men", '/products?parentCategory=Men'], ['Kids', '/products?parentCategory=Kids'], ['Family Kits', '/products?parentCategory=Family+Kits'], ['New Arrivals', '/products?newArrival=true']] },
-            { title: 'Help', links: [['Shipping Info', '#'], ['Size Guide', '#'], ['Returns Policy', '#'], ['Track Order', '#'], ['FAQs', '#']] },
+            { title: 'Help', links: [['Privacy Policy', '/privacy-policy'], ['Size Guide', '#'], ['Return and Refund Policy', '/return-refund-policy'], ['Terms & Conditions', '/terms-and-conditions'], ['FAQs', '#']] },
           ].map(col => (
             <div key={col.title}>
               <h4 className="text-gold text-xs font-bold uppercase tracking-widest mb-4">{col.title}</h4>

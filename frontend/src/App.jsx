@@ -17,6 +17,9 @@ import OrdersPage from './pages/shop/OrdersPage'
 import WishlistPage from './pages/shop/WishlistPage'
 import LoginPage from './pages/shop/LoginPage'
 import RegisterPage from './pages/shop/RegisterPage'
+import PrivacyPolicy from './pages/shop/PrivacyPolicy'
+import ReturnRefundPolicy from './pages/shop/ReturnRefundPolicy'
+import TermsAndConditions from './pages/shop/TermsAndConditions'
 
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard'
@@ -57,6 +60,9 @@ export default function App() {
         <Route path="wishlist" element={<WishlistPage />} />
         <Route path="login" element={<LoginPage />} />
         <Route path="register" element={<RegisterPage />} />
+        <Route path="privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="return-refund-policy" element={<ReturnRefundPolicy />} />
+        <Route path="terms-and-conditions" element={<TermsAndConditions />} />
         <Route path="women" element={<ProductsPage />} />
         <Route path="men" element={<ProductsPage />} />
         <Route path="kids" element={<ProductsPage />} />
