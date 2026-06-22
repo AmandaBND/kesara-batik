@@ -12,10 +12,11 @@ connectDB();
 
 const app = express();
 
+app.set('trust proxy', 1);
 // Security
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(cors({
-  origin: [process.env.FRONTEND_URL, 'http://localhost:3000', 'http://localhost:5173'],
+  origin: [process.env.FRONTEND_URL, 'https://www.kesarabathik.com', 'https://kesarabathik.com'],
   credentials: true,
 }));
 
