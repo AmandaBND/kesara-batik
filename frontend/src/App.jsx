@@ -3,6 +3,7 @@ import { useAuthStore } from './store'
 
 // Layouts
 import ShopLayout from './components/common/ShopLayout'
+import ScrollToTop from './components/common/ScrollToTop'
 import AdminLayout from './components/admin/AdminLayout'
 
 // Shop Pages
@@ -46,7 +47,9 @@ function ProtectedRoute({ children }) {
 
 export default function App() {
   return (
-    <Routes>
+    <>
+      <ScrollToTop />
+      <Routes>
       {/* Shop Routes */}
       <Route path="/" element={<ShopLayout />}>
         <Route index element={<HomePage />} />
@@ -83,5 +86,6 @@ export default function App() {
         <Route path="reports" element={<AdminReports />} />
       </Route>
     </Routes>
+    </>
   )
 }
