@@ -1,17 +1,56 @@
 const asyncHandler = require('express-async-handler');
 const Order = require('../models/Order');
 const Product = require('../models/Product');
+const { findVariant, getAvailableStock } = require('../utils/stock');
 
 // POST /api/orders
 exports.createOrder = asyncHandler(async (req, res) => {
   const { items, shippingAddress, pricing, payment, notes } = req.body;
 
-  // Validate stock and enrich items
-  const enrichedItems = await Promise.all(items.map(async (item) => {
-    const product = await Product.findById(item.product);
-    if (!product || !product.isActive) throw new Error(`Product ${item.product} not available`);
-    return { ...item, name: product.name, image: product.images?.[0]?.url || '' };
-  }));
+  const aggregated = new Map();
+  for (const item of items) {
+    const variant = item.variant || {};
+    const aggKey = `${item.product}-${variant.size || ''}-${variant.color || ''}`;
+    const existing = aggregated.get(aggKey);
+    if (existing) existing.quantity += item.quantity;
+    else aggregated.set(aggKey, { ...item, variant, quantity: item.quantity });
+  }
+
+  const productCache = new Map();
+  const enrichedItems = [];
+
+  for (const item of aggregated.values()) {
+    let product = productCache.get(item.product.toString());
+    if (!product) {
+      product = await Product.findById(item.product);
+      if (!product || !product.isActive) {
+        res.status(400);
+        throw new Error(`Product ${item.product} is not available`);
+      }
+      productCache.set(item.product.toString(), product);
+    }
+
+    if (product.variants?.length) {
+      const variant = findVariant(product, item.variant || {});
+      if (!variant) {
+        res.status(400);
+        throw new Error(`${product.name}: selected size/color combination is unavailable`);
+      }
+    }
+
+    const available = getAvailableStock(product, item.variant || {});
+    if (item.quantity > available) {
+      res.status(400);
+      throw new Error(`${product.name}: only ${available} in stock for the selected variant`);
+    }
+
+    enrichedItems.push({
+      ...item,
+      name: product.name,
+      image: product.images?.[0]?.url || '',
+      price: product.price,
+    });
+  }
 
   const order = await Order.create({
     user: req.user?._id,
@@ -24,9 +63,24 @@ exports.createOrder = asyncHandler(async (req, res) => {
     statusHistory: [{ status: 'pending', note: 'Order placed' }],
   });
 
-  // Update sold count
-  for (const item of items) {
-    await Product.findByIdAndUpdate(item.product, { $inc: { soldCount: item.quantity } });
+  for (const item of enrichedItems) {
+    const product = productCache.get(item.product.toString());
+    if (product.variants?.length) {
+      const idx = product.variants.findIndex(v =>
+        (v.size || '') === (item.variant?.size || '') &&
+        (v.color || '') === (item.variant?.color || '')
+      );
+      if (idx >= 0) {
+        product.variants[idx].stock = Math.max(0, (product.variants[idx].stock || 0) - item.quantity);
+        product.stockCount = product.variants.reduce((sum, v) => sum + (v.stock || 0), 0);
+        product.soldCount = (product.soldCount || 0) + item.quantity;
+        await product.save();
+      }
+    } else {
+      await Product.findByIdAndUpdate(item.product, {
+        $inc: { stockCount: -item.quantity, soldCount: item.quantity },
+      });
+    }
   }
 
   const populated = await Order.findById(order._id).populate('user', 'name email');

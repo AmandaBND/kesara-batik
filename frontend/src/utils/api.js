@@ -15,7 +15,12 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (res) => res.data,
   (err) => {
-    if (err.response?.status === 401) {
+    const status = err.response?.status
+    const url = err.config?.url || ''
+    const onAuthPage = ['/login', '/register'].includes(window.location.pathname)
+    const isAuthRequest = url.includes('/auth/login') || url.includes('/auth/register') || url.includes('/auth/google')
+
+    if (status === 401 && !isAuthRequest && !onAuthPage) {
       localStorage.removeItem('kb-auth')
       window.location.href = '/login'
     }

@@ -78,5 +78,5 @@ export function AdminReviews() {
     </div>
   )
 }
-export default AdminReviews
-function AdminReviews() { return <AdminReviews /> }
+
+

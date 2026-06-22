@@ -14,6 +14,15 @@ const CATEGORIES = [
 const PARENT_CATS = ['Women','Men','Kids','Family Kits','Accessories','Unisex']
 const SIZES = ['XS','S','M','L','XL','XXL','XXXL','Free Size','2Y','4Y','6Y','8Y','10Y','12Y']
 
+const FORM_FIELDS = [
+  'name', 'nameLocal', 'sku', 'description', 'shortDescription',
+  'price', 'priceLKR', 'comparePrice', 'category', 'parentCategory',
+  'fabric', 'length', 'width', 'care',
+  'isFeatured', 'isNewArrival', 'isTrending', 'isActive',
+  'stockCount', 'weight',
+  'metaTitle', 'metaDescription',
+]
+
 export default function AdminProductForm() {
   const { id } = useParams()
   const isEdit = !!id
@@ -27,7 +36,7 @@ export default function AdminProductForm() {
 
   const [form, setForm] = useState({
     name: '', nameLocal: '', sku: '', description: '', shortDescription: '',
-    price: '', comparePrice: '', category: '', parentCategory: '',
+    price: '', priceLKR: '', comparePrice: '', category: '', parentCategory: '',
     fabric: '', length: '', width: '', care: '',
     isFeatured: false, isNewArrival: true, isTrending: false, isActive: true,
     stockCount: 0, weight: '',
@@ -41,13 +50,34 @@ export default function AdminProductForm() {
 
   useEffect(() => {
     if (!isEdit) return
-    api.get(`/products/${id}`).then(p => {
+    api.get(`/products/admin/${id}`).then(p => {
       setForm({
-        ...p,
-        tags: (p.tags || []).join(', '),
+        name: p.name || '',
+        nameLocal: p.nameLocal || '',
+        sku: p.sku || '',
+        description: p.description || '',
+        shortDescription: p.shortDescription || '',
+        price: p.price ?? '',
+        priceLKR: p.priceLKR ?? '',
+        comparePrice: p.comparePrice ?? '',
+        category: p.category || '',
+        parentCategory: p.parentCategory || '',
+        fabric: p.fabric || '',
+        length: p.length || '',
+        width: p.width || '',
+        care: p.care || '',
+        isFeatured: !!p.isFeatured,
+        isNewArrival: p.isNewArrival !== false,
+        isTrending: !!p.isTrending,
+        isActive: p.isActive !== false,
+        stockCount: p.stockCount ?? 0,
+        weight: p.weight ?? '',
+        metaTitle: p.metaTitle || '',
+        metaDescription: p.metaDescription || '',
         metaKeywords: (p.metaKeywords || []).join(', '),
+        tags: (p.tags || []).join(', '),
         variants: p.variants?.length ? p.variants : [{ size:'', color:'', colorCode:'', stock:0, sku:'' }],
-        additionalInfo: p.additionalInfo || {},
+        additionalInfo: typeof p.additionalInfo === 'object' && p.additionalInfo ? p.additionalInfo : {},
       })
       setExistingImages(p.images || [])
     }).catch(() => toast.error('Failed to load product')).finally(() => setFetching(false))
@@ -99,14 +129,14 @@ export default function AdminProductForm() {
     setLoading(true)
     try {
       const fd = new FormData()
-      const payload = {
-        ...form,
-        tags: form.tags ? form.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
-        metaKeywords: form.metaKeywords ? form.metaKeywords.split(',').map(t => t.trim()).filter(Boolean) : [],
-        variants: JSON.stringify(form.variants),
-        additionalInfo: JSON.stringify(form.additionalInfo),
-      }
-      Object.entries(payload).forEach(([k, v]) => { if (v !== undefined && v !== null) fd.append(k, v) })
+      FORM_FIELDS.forEach(k => {
+        const v = form[k]
+        if (v !== undefined && v !== null) fd.append(k, v)
+      })
+      fd.append('tags', form.tags ? form.tags.split(',').map(t => t.trim()).filter(Boolean).join(',') : '')
+      fd.append('metaKeywords', form.metaKeywords ? form.metaKeywords.split(',').map(t => t.trim()).filter(Boolean).join(',') : '')
+      fd.append('variants', JSON.stringify(form.variants))
+      fd.append('additionalInfo', JSON.stringify(form.additionalInfo))
       imageFiles.forEach(f => fd.append('images', f))
 
       if (isEdit) {
@@ -170,6 +200,7 @@ export default function AdminProductForm() {
               </select>
             </div>
             <div><label className="label">Price (CAD) *</label><input type="number" required min="0" step="0.01" value={form.price} onChange={e => set('price', e.target.value)} className="input" placeholder="89.00" /></div>
+            <div><label className="label">Price (LKR - Manual)</label><input type="number" min="0" step="0.01" value={form.priceLKR} onChange={e => set('priceLKR', e.target.value)} className="input" placeholder="25000.00" /></div>
             <div><label className="label">Compare Price (CAD)</label><input type="number" min="0" step="0.01" value={form.comparePrice} onChange={e => set('comparePrice', e.target.value)} className="input" placeholder="Original price (optional)" /></div>
             <div><label className="label">Stock Count</label><input type="number" min="0" value={form.stockCount} onChange={e => set('stockCount', e.target.value)} className="input" /></div>
           </div>

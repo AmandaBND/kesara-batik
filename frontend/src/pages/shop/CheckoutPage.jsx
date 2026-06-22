@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { useCartStore, useAuthStore, useCurrencyStore } from '../../store'
+import { getUnitPrice } from '../../utils/pricing'
 import api from '../../utils/api'
 import toast from 'react-hot-toast'
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js'
@@ -9,7 +10,7 @@ import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js'
 export default function CheckoutPage() {
   const { items, subtotal, shipping, total, clear } = useCartStore()
   const { user } = useAuthStore()
-  const { format } = useCurrencyStore()
+  const { formatAmount, currency, rates } = useCurrencyStore()
   const navigate = useNavigate()
   const [step, setStep] = useState(1) // 1: address, 2: payment
   const [payMethod, setPayMethod] = useState('stripe')
@@ -22,7 +23,14 @@ export default function CheckoutPage() {
   const createOrderPayload = () => ({
     items: items.map(i => ({ product: i.product._id, quantity: i.quantity, price: i.price, variant: i.variant })),
     shippingAddress: address,
-    pricing: { subtotal: subtotal(), shipping: shipping(), tax: 0, discount: 0, total: total(), currency: 'CAD' },
+    pricing: {
+      subtotal: subtotal(),
+      shipping: shipping(),
+      tax: 0,
+      discount: 0,
+      total: total(),
+      currency: currency === 'LKR' ? 'LKR' : 'CAD',
+    },
     payment: { method: payMethod, status: 'pending' },
   })
 
@@ -126,7 +134,7 @@ export default function CheckoutPage() {
 
               {payMethod !== 'paypal' && (
                 <button onClick={handleStripeCheckout} disabled={loading || !address.fullName || !address.address} className="btn-gold w-full py-4 text-base mt-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                  {loading ? 'Processing...' : `Place Order · ${format(total())}`}
+                  {loading ? 'Processing...' : `Place Order · ${formatAmount(total())}`}
                 </button>
               )}
 
@@ -145,15 +153,15 @@ export default function CheckoutPage() {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{item.product.name}</p>
                       {item.variant?.size && <p className="text-xs text-gray-400">Size: {item.variant.size}</p>}
-                      <p className="text-sm font-bold text-gold">{format(item.price)} × {item.quantity}</p>
+                      <p className="text-sm font-bold text-gold">{formatAmount(getUnitPrice(item.product, currency, rates))} × {item.quantity}</p>
                     </div>
                   </div>
                 ))}
               </div>
               <div className="border-t pt-4 space-y-2 text-sm">
-                <div className="flex justify-between text-gray-500"><span>Subtotal</span><span>{format(subtotal())}</span></div>
-                <div className="flex justify-between text-gray-500"><span>Shipping</span><span>{shipping() === 0 ? <span className="text-green-600">FREE 🎉</span> : format(shipping())}</span></div>
-                <div className="flex justify-between font-bold text-lg border-t pt-2"><span>Total</span><span className="text-gold">{format(total())}</span></div>
+                <div className="flex justify-between text-gray-500"><span>Subtotal</span><span>{formatAmount(subtotal())}</span></div>
+                <div className="flex justify-between text-gray-500"><span>Shipping</span><span>{currency === 'LKR' ? formatAmount(shipping()) : shipping() === 0 ? <span className="text-green-600">FREE 🎉</span> : formatAmount(shipping())}</span></div>
+                <div className="flex justify-between font-bold text-lg border-t pt-2"><span>Total</span><span className="text-gold">{formatAmount(total())}</span></div>
               </div>
             </div>
           </div>

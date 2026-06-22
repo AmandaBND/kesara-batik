@@ -1,5 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { getAvailableStock, findVariant, hasVariants, getCartQtyForVariant } from './utils/stock'
+import { getCartSubtotal, getShipping, getCartTotal } from './utils/pricing'
 
 // ─── Auth Store ───────────────────────────────────────────
 export const useAuthStore = create(persist((set, get) => ({
@@ -16,24 +18,64 @@ export const useCartStore = create(persist((set, get) => ({
   isOpen: false,
 
   addItem: (product, variant = {}, qty = 1) => {
-    const key = `${product._id}-${variant.size || ''}-${variant.color || ''}`;
+    if (hasVariants(product)) {
+      if (!findVariant(product, variant)) {
+        return { success: false, message: 'Please select a valid size and color combination' };
+      }
+    }
+
+    const available = getAvailableStock(product, variant);
     const items = get().items;
+    const key = `${product._id}-${variant.size || ''}-${variant.color || ''}`;
     const idx = items.findIndex(i => i.key === key);
+    const currentQty = idx > -1 ? items[idx].quantity : 0;
+    const requestedTotal = currentQty + qty;
+
+    if (available === 0) {
+      return { success: false, message: 'This item is out of stock' };
+    }
+    if (requestedTotal > available) {
+      const canAdd = available - currentQty;
+      if (canAdd <= 0) {
+        return { success: false, message: `Only ${available} available in stock` };
+      }
+      qty = canAdd;
+    }
+
     if (idx > -1) {
       const updated = [...items];
       updated[idx].quantity += qty;
-      set({ items: updated });
+      set({ items: updated, isOpen: true });
     } else {
-      set({ items: [...items, { key, product, variant, quantity: qty, price: product.price }] });
+      set({ items: [...items, { key, product, variant, quantity: qty, price: product.price }], isOpen: true });
     }
-    set({ isOpen: true });
+
+    const capped = requestedTotal > available;
+    return {
+      success: true,
+      message: capped ? `Only ${available} available — quantity adjusted` : 'Added to cart',
+      capped,
+    };
   },
 
   removeItem: (key) => set({ items: get().items.filter(i => i.key !== key) }),
 
   updateQty: (key, qty) => {
     if (qty <= 0) return get().removeItem(key);
+    const item = get().items.find(i => i.key === key);
+    if (!item) return { success: false, message: 'Item not found in cart' };
+
+    const available = getAvailableStock(item.product, item.variant);
+    if (available === 0) {
+      get().removeItem(key);
+      return { success: false, message: 'This item is out of stock and was removed from your cart' };
+    }
+    if (qty > available) {
+      set({ items: get().items.map(i => i.key === key ? { ...i, quantity: available } : i) });
+      return { success: false, message: `Only ${available} available in stock`, capped: true };
+    }
     set({ items: get().items.map(i => i.key === key ? { ...i, quantity: qty } : i) });
+    return { success: true };
   },
 
   clear: () => set({ items: [] }),
@@ -41,10 +83,19 @@ export const useCartStore = create(persist((set, get) => ({
   openCart: () => set({ isOpen: true }),
   closeCart: () => set({ isOpen: false }),
 
-  subtotal: () => get().items.reduce((s, i) => s + i.price * i.quantity, 0),
+  subtotal: () => {
+    const { currency, rates } = useCurrencyStore.getState()
+    return getCartSubtotal(get().items, currency, rates)
+  },
   itemCount: () => get().items.reduce((s, i) => s + i.quantity, 0),
-  shipping: () => get().subtotal() > 120 ? 0 : 18,
-  total: () => get().subtotal() + get().shipping(),
+  shipping: () => {
+    const { currency, rates } = useCurrencyStore.getState()
+    return getShipping(get().items, currency, rates)
+  },
+  total: () => {
+    const { currency, rates } = useCurrencyStore.getState()
+    return getCartTotal(get().items, currency, rates)
+  },
 }), { name: 'kb-cart' }))
 
 // ─── Wishlist Store ────────────────────────────────────────
@@ -60,15 +111,54 @@ export const useWishlistStore = create(persist((set, get) => ({
 }), { name: 'kb-wishlist' }))
 
 // ─── Currency Store ────────────────────────────────────────
-export const useCurrencyStore = create(persist((set) => ({
+export const useCurrencyStore = create(persist((set, get) => ({
   currency: 'CAD',
   rates: { CAD: 1, USD: 0.74, GBP: 0.58, AED: 2.72, LKR: 225, JPY: 110, KRW: 1000 },
   symbols: { CAD: 'CA$', USD: 'US$', GBP: '£', AED: 'AED ', LKR: 'LKR ', JPY: '¥', KRW: '₩' },
-  setCurrency: (currency) => set({ currency }),
-  format: (cadPrice) => {
-    const state = useCurrencyStore.getState();
-    const converted = cadPrice * (state.rates[state.currency] || 1);
-    const sym = state.symbols[state.currency] || state.currency + ' ';
-    return sym + converted.toFixed(2);
+  lastUpdated: null,
+  isFromSriLanka: false,
+  currencyLocked: false,
+  
+  setCurrency: (currency) => {
+    const state = get();
+    // Sri Lankan users must always use LKR, cannot select other currencies
+    if (state.isFromSriLanka && currency !== 'LKR') {
+      return;
+    }
+    set({ currency });
+  },
+  
+  setRates: (rates, lastUpdated) => set({ rates, lastUpdated }),
+  
+  lockCurrency: (lock = true) => set({ currencyLocked: lock }),
+  
+  setCountryInfo: (isFromSriLanka) => {
+    if (isFromSriLanka) {
+      set({ 
+        isFromSriLanka: true, 
+        currency: 'LKR', 
+        currencyLocked: true 
+      });
+    } else {
+      set({ isFromSriLanka: false });
+    }
+  },
+  
+  format: (cadPrice, currentProduct = null) => {
+    const state = get()
+    const sym = state.symbols[state.currency] || state.currency + ' '
+
+    if (state.currency === 'LKR' && currentProduct?.priceLKR != null && currentProduct.priceLKR > 0) {
+      return sym + Number(currentProduct.priceLKR).toFixed(2)
+    }
+
+    const converted = cadPrice * (state.rates[state.currency] || 1)
+    return sym + converted.toFixed(2)
+  },
+
+  formatAmount: (amount) => {
+    const state = get()
+    const sym = state.symbols[state.currency] || state.currency + ' '
+    return sym + Number(amount).toFixed(2)
   },
 }), { name: 'kb-currency' }))

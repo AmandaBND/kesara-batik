@@ -3,6 +3,10 @@ import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useCartStore, useAuthStore, useWishlistStore, useCurrencyStore } from '../../store'
 import { FiShoppingCart, FiHeart, FiUser, FiSearch, FiMenu, FiX, FiChevronDown, FiTrash2, FiPlus, FiMinus } from 'react-icons/fi'
+import api from '../../utils/api'
+import { detectCountry } from '../../utils/geolocation'
+import { getUnitPrice } from '../../utils/pricing'
+import toast from 'react-hot-toast'
 
 const CATEGORIES = {
   Women: ["Women's Saree", "Women's Lungi", "Batik Kandyan designs", "Batik Frocks", "Batik Tops & Skirts", "Batik Tops & Pants", "Batik Kurtha Sets", "Batik Kaftan"],
@@ -16,10 +20,42 @@ export default function ShopLayout() {
   const { items, isOpen, closeCart, toggleCart, removeItem, updateQty, subtotal, itemCount, shipping, total } = useCartStore()
   const { user, logout } = useAuthStore()
   const { items: wishlist } = useWishlistStore()
-  const { currency, setCurrency, format } = useCurrencyStore()
+  const { currency, setCurrency, formatAmount, setRates, isFromSriLanka, currencyLocked, setCountryInfo, rates } = useCurrencyStore()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [search, setSearch] = useState('')
   const navigate = useNavigate()
+
+  useEffect(() => {
+    // Detect user's country on first load
+    const detectAndSetLocation = async () => {
+      const geo = await detectCountry()
+      setCountryInfo(geo.isFromSriLanka)
+      
+      if (geo.isFromSriLanka) {
+        setCurrency('LKR')
+        toast.success('Welcome! Currency locked to LKR 🇱🇰', { duration: 2 })
+      }
+    }
+    
+    detectAndSetLocation()
+  }, [setCountryInfo, setCurrency])
+
+  useEffect(() => {
+    const fetchRates = () => {
+      api.get('/currency/rates').then(data => {
+        if (data?.rates) setRates(data.rates, data.updatedAt)
+      }).catch(() => {})
+    }
+    fetchRates()
+    const interval = setInterval(fetchRates, 60 * 60 * 1000)
+    return () => clearInterval(interval)
+  }, [setRates])
+
+  const handleQtyChange = (key, qty) => {
+    const result = updateQty(key, qty)
+    if (result && !result.success) toast.error(result.message)
+    else if (result?.capped) toast(result.message, { icon: '⚠️' })
+  }
 
   const handleSearch = (e) => {
     e.preventDefault()
@@ -39,7 +75,7 @@ export default function ShopLayout() {
           <div className="flex items-center justify-between h-16 gap-4">
             {/* Logo */}
             <Link to="/" className="flex items-center gap-3 shrink-0">
-              <img src="/logo.png" alt="Kesara Batik" className="h-10 w-10 object-contain" />
+              <img src="../../assets/logo.png" alt="Kesara Batik" className="h-10 w-10 object-contain" />
               <div className="hidden sm:block">
                 <div className="font-display text-lg font-bold text-deep leading-tight">කේසර බතික්</div>
                 <div className="text-xs text-gold font-medium tracking-widest">KESARA BATIK</div>
@@ -56,9 +92,12 @@ export default function ShopLayout() {
 
             {/* Actions */}
             <div className="flex items-center gap-2 sm:gap-4">
-              <select value={currency} onChange={e => setCurrency(e.target.value)} className="text-xs border border-gray-200 rounded-lg px-2 py-1 bg-cream focus:outline-none hidden sm:block">
-                {['CAD','USD','GBP','AED','LKR','JPY','KRW'].map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
+              <div className="flex items-center gap-2">
+                <select value={currency} onChange={e => setCurrency(e.target.value)} disabled={currencyLocked} className={`text-xs border border-gray-200 rounded-lg px-2 py-1 bg-cream focus:outline-none hidden sm:block ${currencyLocked ? 'opacity-60 cursor-not-allowed' : ''}`}>
+                  {['CAD','USD','GBP','AED',...(isFromSriLanka ? ['LKR'] : []),'JPY','KRW'].map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+                {currencyLocked && <span className="text-xs text-gold font-semibold hidden sm:block" title="Currency locked for Sri Lanka">🔒</span>}
+              </div>
 
               <Link to="/wishlist" className="relative p-2 text-deep hover:text-gold transition-colors hidden sm:block">
                 <FiHeart size={20} />
@@ -223,11 +262,11 @@ export default function ShopLayout() {
                     <div className="flex-1 min-w-0">
                       <h4 className="text-sm font-semibold truncate">{item.product.name}</h4>
                       {item.variant.size && <p className="text-xs text-gray-500">Size: {item.variant.size}</p>}
-                      <p className="text-gold font-bold mt-1">{format(item.price)}</p>
+                      <p className="text-gold font-bold mt-1">{formatAmount(getUnitPrice(item.product, currency, rates))}</p>
                       <div className="flex items-center gap-2 mt-2">
-                        <button onClick={() => updateQty(item.key, item.quantity - 1)} className="w-7 h-7 border rounded-full flex items-center justify-center hover:border-gold hover:text-gold transition-colors"><FiMinus size={12} /></button>
+                        <button onClick={() => handleQtyChange(item.key, item.quantity - 1)} className="w-7 h-7 border rounded-full flex items-center justify-center hover:border-gold hover:text-gold transition-colors"><FiMinus size={12} /></button>
                         <span className="text-sm font-medium w-6 text-center">{item.quantity}</span>
-                        <button onClick={() => updateQty(item.key, item.quantity + 1)} className="w-7 h-7 border rounded-full flex items-center justify-center hover:border-gold hover:text-gold transition-colors"><FiPlus size={12} /></button>
+                        <button onClick={() => handleQtyChange(item.key, item.quantity + 1)} className="w-7 h-7 border rounded-full flex items-center justify-center hover:border-gold hover:text-gold transition-colors"><FiPlus size={12} /></button>
                         <button onClick={() => removeItem(item.key)} className="ml-auto text-red-400 hover:text-red-600 transition-colors"><FiTrash2 size={14} /></button>
                       </div>
                     </div>
@@ -238,9 +277,9 @@ export default function ShopLayout() {
               {items.length > 0 && (
                 <div className="p-6 border-t bg-white">
                   <div className="space-y-2 mb-4 text-sm">
-                    <div className="flex justify-between text-gray-600"><span>Subtotal</span><span>{format(subtotal())}</span></div>
-                    <div className="flex justify-between text-gray-600"><span>Shipping</span><span>{shipping() === 0 ? <span className="text-green-600 font-semibold">FREE 🎉</span> : format(shipping())}</span></div>
-                    <div className="flex justify-between font-bold text-lg border-t pt-2"><span>Total</span><span className="text-gold">{format(total())}</span></div>
+                    <div className="flex justify-between text-gray-600"><span>Subtotal</span><span>{formatAmount(subtotal())}</span></div>
+                    <div className="flex justify-between text-gray-600"><span>Shipping</span><span>{currency === 'LKR' ? formatAmount(shipping()) : shipping() === 0 ? <span className="text-green-600 font-semibold">FREE 🎉</span> : formatAmount(shipping())}</span></div>
+                    <div className="flex justify-between font-bold text-lg border-t pt-2"><span>Total</span><span className="text-gold">{formatAmount(total())}</span></div>
                   </div>
                   <Link to="/checkout" onClick={closeCart} className="btn-gold w-full block text-center">Checkout →</Link>
                   <p className="text-center text-xs text-gray-400 mt-3">🔒 Secure checkout · Stripe & PayPal</p>
