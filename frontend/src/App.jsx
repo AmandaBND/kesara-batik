@@ -21,6 +21,7 @@ import RegisterPage from './pages/shop/RegisterPage'
 import PrivacyPolicy from './pages/shop/PrivacyPolicy'
 import ReturnRefundPolicy from './pages/shop/ReturnRefundPolicy'
 import TermsAndConditions from './pages/shop/TermsAndConditions'
+import FAQ from './pages/shop/FAQ'
 
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard'
@@ -66,6 +67,7 @@ export default function App() {
         <Route path="privacy-policy" element={<PrivacyPolicy />} />
         <Route path="return-refund-policy" element={<ReturnRefundPolicy />} />
         <Route path="terms-and-conditions" element={<TermsAndConditions />} />
+        <Route path="faq" element={<FAQ />} />
         <Route path="women" element={<ProductsPage />} />
         <Route path="men" element={<ProductsPage />} />
         <Route path="kids" element={<ProductsPage />} />

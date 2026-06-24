@@ -63,7 +63,7 @@ export default function HomePage() {
               </div>
             </motion.div>
             <motion.div initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.7, delay: 0.2 }} className="hidden lg:grid grid-cols-2 gap-4">
-              {[['✈️','Ships to Canada','Door-to-door delivery from Colombo'],['🎨','100% Handcrafted','Traditional wax-resist dyeing'],['🔒','Secure Payment','PayPal, Stripe & Google Pay'],['🔄','Easy Returns','14-day return guarantee']].map(([icon,t,d]) => (
+              {[['✈️','Ships to Overseas','Door-to-door delivery from Colombo'],['🎨','100% Handcrafted','Traditional wax-resist dyeing'],['🔒','Secure Payment','PayPal, Stripe & Google Pay'],['🔄','Easy Returns','14-day return guarantee']].map(([icon,t,d]) => (
                 <div key={t} className="bg-white/5 border border-gold/20 rounded-2xl p-6 backdrop-blur-sm">
                   <div className="text-3xl mb-3">{icon}</div>
                   <h3 className="text-gold font-semibold text-sm mb-2">{t}</h3>

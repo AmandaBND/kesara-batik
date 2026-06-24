@@ -210,7 +210,7 @@ export default function ShopLayout() {
           </div>
           {[
             { title: 'Shop', links: [['Women', '/products?parentCategory=Women'], ["Men", '/products?parentCategory=Men'], ['Kids', '/products?parentCategory=Kids'], ['Family Kits', '/products?parentCategory=Family+Kits'], ['New Arrivals', '/products?newArrival=true']] },
-            { title: 'Help', links: [['Privacy Policy', '/privacy-policy'], ['Size Guide', '#'], ['Return and Refund Policy', '/return-refund-policy'], ['Terms & Conditions', '/terms-and-conditions'], ['FAQs', '#']] },
+            { title: 'Help', links: [['Privacy Policy', '/privacy-policy'], ['Return and Refund Policy', '/return-refund-policy'], ['Terms & Conditions', '/terms-and-conditions'], ['FAQs', '/faq']] },
           ].map(col => (
             <div key={col.title}>
               <h4 className="text-gold text-xs font-bold uppercase tracking-widest mb-4">{col.title}</h4>
@@ -232,7 +232,7 @@ export default function ShopLayout() {
         <div className="border-t border-white/10 py-6 px-8 flex flex-wrap items-center justify-between gap-4 max-w-7xl mx-auto">
           <p className="text-xs text-gray-600">© 2024 Kesara Batik. All rights reserved.</p>
           <div className="flex gap-2">
-            {['💳 Visa','💳 Mastercard','🅿️ PayPal','G Google Pay','🔒 Stripe'].map(p => (
+            {['💳 Visa','💳 Mastercard','🔌 Dialog Genie','🏦 Bank Wire'].map(p => (
               <span key={p} className="text-xs px-2 py-1 border border-white/10 rounded text-gray-500">{p}</span>
             ))}
           </div>
@@ -283,7 +283,7 @@ export default function ShopLayout() {
                     <div className="flex justify-between font-bold text-lg border-t pt-2"><span>Total</span><span className="text-gold">{formatAmount(total())}</span></div>
                   </div>
                   <Link to="/checkout" onClick={closeCart} className="btn-gold w-full block text-center">Checkout →</Link>
-                  <p className="text-center text-xs text-gray-400 mt-3">🔒 Secure checkout · Stripe & PayPal</p>
+                  <p className="text-center text-xs text-gray-400 mt-3">🔒 Secure checkout · Dialog Genie & Bank Wire</p>
                 </div>
               )}
             </motion.div>
