@@ -8,7 +8,7 @@ export default function OrderSuccessPage() {
   const [order, setOrder] = useState(null)
 
   useEffect(() => {
-    api.get(`/orders/${id}`).then(setOrder).catch(() => {})
+    api.get(`orders/${id}`).then(setOrder).catch(() => {})
   }, [id])
 
   return (

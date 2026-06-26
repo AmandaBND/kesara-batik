@@ -16,7 +16,7 @@ export function LoginPage() {
     e.preventDefault()
     setLoading(true)
     try {
-      const data = await api.post('/auth/login', form)
+      const data = await api.post('auth/login', form)
       setAuth(data.user, data.token)
       toast.success(`Welcome back, ${data.user.name}!`)
       navigate(data.user.role === 'admin' ? '/admin' : '/')

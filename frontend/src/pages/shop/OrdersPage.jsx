@@ -20,7 +20,7 @@ export default function OrdersPage() {
   const { format } = useCurrencyStore()
 
   useEffect(() => {
-    api.get('/orders/my').then(setOrders).finally(() => setLoading(false))
+    api.get('orders/my').then(setOrders).finally(() => setLoading(false))
   }, [])
 
   return (

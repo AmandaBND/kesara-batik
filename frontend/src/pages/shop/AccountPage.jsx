@@ -15,7 +15,7 @@ export function AccountPage() {
     e.preventDefault()
     setLoading(true)
     try {
-      const updated = await api.put('/auth/profile', form)
+      const updated = await api.put('auth/profile', form)
       setAuth(updated, JSON.parse(localStorage.getItem('kb-auth'))?.state?.token)
       toast.success('Profile updated!')
     } catch (err) { toast.error(err.message) }
@@ -26,7 +26,7 @@ export function AccountPage() {
     e.preventDefault()
     if (pwForm.newPassword !== pwForm.confirm) return toast.error('Passwords do not match')
     try {
-      await api.put('/auth/password', { currentPassword: pwForm.currentPassword, newPassword: pwForm.newPassword })
+      await api.put('auth/password', { currentPassword: pwForm.currentPassword, newPassword: pwForm.newPassword })
       toast.success('Password changed!')
       setPwForm({ currentPassword: '', newPassword: '', confirm: '' })
     } catch (err) { toast.error(err.message) }

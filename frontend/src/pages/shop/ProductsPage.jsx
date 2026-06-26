@@ -39,7 +39,7 @@ export default function ProductsPage() {
       setLoading(true)
       try {
         const q = new URLSearchParams({ page, limit: 12, sort, ...(category && { category }), ...(parentCategory && { parentCategory }), ...(search && { search }), ...(newArrival && { newArrival }), ...(featured && { featured }), ...(priceRange.min && { minPrice: priceRange.min }), ...(priceRange.max && { maxPrice: priceRange.max }) })
-        const data = await api.get(`/products?${q}`)
+        const data = await api.get(`products?${q}`)
         setProducts(data.products)
         setTotal(data.total)
         setPages(data.pages)

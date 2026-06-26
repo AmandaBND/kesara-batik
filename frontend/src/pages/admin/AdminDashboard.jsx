@@ -13,7 +13,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    api.get('/admin/dashboard').then(setData).finally(() => setLoading(false))
+    api.get('admin/dashboard').then(setData).finally(() => setLoading(false))
   }, [])
 
   if (loading) return (

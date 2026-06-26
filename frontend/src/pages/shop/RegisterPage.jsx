@@ -17,7 +17,7 @@ export default function RegisterPage() {
     if (form.password !== form.confirm) return toast.error('Passwords do not match')
     setLoading(true)
     try {
-      const data = await api.post('/auth/register', { name: form.name, email: form.email, password: form.password })
+      const data = await api.post('auth/register', { name: form.name, email: form.email, password: form.password })
       setAuth(data.user, data.token)
       toast.success('Account created! Welcome to Kesara Batik 🎉')
       navigate('/')

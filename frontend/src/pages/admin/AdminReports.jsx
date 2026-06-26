@@ -19,8 +19,8 @@ export default function AdminReports() {
     setLoading(true)
     try {
       const [monthly, yearly] = await Promise.all([
-        api.get(`/reports/monthly?year=${year}&month=${month}`),
-        api.get(`/reports/yearly?year=${year}`),
+        api.get(`reports/monthly?year=${year}&month=${month}`),
+        api.get(`reports/yearly?year=${year}`),
       ])
       setReport(monthly)
       setYearlyData(yearly)

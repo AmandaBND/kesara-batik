@@ -37,12 +37,12 @@ export default function CheckoutPage() {
   const handleStripeCheckout = async () => {
     setLoading(true)
     try {
-      const order = await api.post('/orders', createOrderPayload())
-      const { clientSecret } = await api.post('/payments/stripe/intent', { amount: total(), orderId: order._id })
+      const order = await api.post('orders', createOrderPayload())
+      const { clientSecret } = await api.post('payments/stripe/intent', { amount: total(), orderId: order._id })
       // In production, use Stripe Elements with the clientSecret
       // For now, simulate payment confirmation
       await api.put(`/orders/${order._id}/status`, { status: 'confirmed', note: 'Payment confirmed' })
-      await api.post('/payments/stripe/intent', { amount: 0, orderId: order._id }) // demo
+      await api.post('payments/stripe/intent', { amount: 0, orderId: order._id }) // demo
       clear()
       navigate(`/order-success/${order._id}`)
       toast.success('Order placed successfully! 🎉')
@@ -103,14 +103,14 @@ export default function CheckoutPage() {
                   <PayPalButtons
                     style={{ layout: 'vertical', color: 'gold', shape: 'pill' }}
                     createOrder={async () => {
-                      const { id } = await api.post('/payments/paypal/create', { amount: total() })
+                      const { id } = await api.post('payments/paypal/create', { amount: total() })
                       return id
                     }}
                     onApprove={async (data) => {
                       setLoading(true)
                       try {
-                        const order = await api.post('/orders', createOrderPayload())
-                        await api.post('/payments/paypal/capture', { paypalOrderId: data.orderID, orderId: order._id })
+                        const order = await api.post('orders', createOrderPayload())
+                        await api.post('payments/paypal/capture', { paypalOrderId: data.orderID, orderId: order._id })
                         clear()
                         navigate(`/order-success/${order._id}`)
                         toast.success('Order placed! Payment confirmed 🎉')

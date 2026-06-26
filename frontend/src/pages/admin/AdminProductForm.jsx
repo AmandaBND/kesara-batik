@@ -50,7 +50,7 @@ export default function AdminProductForm() {
 
   useEffect(() => {
     if (!isEdit) return
-    api.get(`/products/admin/${id}`).then(p => {
+    api.get(`products/admin/${id}`).then(p => {
       setForm({
         name: p.name || '',
         nameLocal: p.nameLocal || '',
@@ -143,10 +143,10 @@ export default function AdminProductForm() {
       console.log('[Product Form] Submitting with', imageFiles.length, 'images')
 
       if (isEdit) {
-        await api.put(`/products/${id}`, fd)
+        await api.put(`products/${id}`, fd)
         toast.success('Product updated!')
       } else {
-        await api.post('/products', fd)
+        await api.post('products', fd)
         toast.success('Product created!')
       }
       navigate('/admin/products')

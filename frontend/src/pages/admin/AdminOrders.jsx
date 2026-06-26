@@ -19,7 +19,7 @@ export default function AdminOrders() {
     setLoading(true)
     try {
       const p = new URLSearchParams({ page, limit: 20, ...(search && { search }), ...(status && { status }) })
-      const data = await api.get(`/orders?${p}`)
+      const data = await api.get(`orders?${p}`)
       setOrders(data.orders || [])
       setTotal(data.total || 0)
       setPages(data.pages || 1)

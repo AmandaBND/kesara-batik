@@ -19,7 +19,7 @@ export default function GoogleSignInButton({ context = 'signin', text = 'continu
 
     setLoading(true)
     try {
-      const data = await api.post('/auth/google', { credential: response.credential })
+      const data = await api.post('auth/google', { credential: response.credential })
       onSuccess?.(data)
     } catch (err) {
       toast.error(err?.message || 'Google sign-in failed')

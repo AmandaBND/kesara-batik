@@ -11,7 +11,7 @@ export function AdminReviews() {
   const [replyText, setReplyText] = useState('')
 
   useEffect(() => {
-    api.get('/reviews').then(setReviews).finally(() => setLoading(false))
+    api.get('reviews').then(setReviews).finally(() => setLoading(false))
   }, [])
 
   const handleDelete = async (id) => {
@@ -23,7 +23,7 @@ export function AdminReviews() {
 
   const handleReply = async (id) => {
     try {
-      const updated = await api.post(`/reviews/${id}/reply`, { reply: replyText })
+      const updated = await api.post(`reviews/${id}/reply`, { reply: replyText })
       setReviews(rs => rs.map(r => r._id === id ? updated : r))
       setReplyId(null); setReplyText('')
       toast.success('Reply posted!')

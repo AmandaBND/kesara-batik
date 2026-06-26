@@ -20,7 +20,7 @@ export default function AdminOrderDetail() {
   const [refunding, setRefunding] = useState(false)
 
   useEffect(() => {
-    api.get(`/orders/${id}`).then(o => {
+    api.get(`orders/${id}`).then(o => {
       setOrder(o)
       setStatus(o.status)
       setTracking(o.trackingNumber || '')
@@ -44,7 +44,7 @@ export default function AdminOrderDetail() {
     if (!confirm(`Process refund of CA$${refundAmt}?`)) return
     setRefunding(true)
     try {
-      const { order: updated } = await api.post(`/orders/${id}/refund`, { amount: parseFloat(refundAmt), reason: refundReason })
+      const { order: updated } = await api.post(`orders/${id}/refund`, { amount: parseFloat(refundAmt), reason: refundReason })
       setOrder(updated)
       toast.success('Refund processed!')
       setRefundAmt(''); setRefundReason('')

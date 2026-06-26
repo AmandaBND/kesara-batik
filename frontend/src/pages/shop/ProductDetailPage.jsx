@@ -28,8 +28,8 @@ export default function ProductDetailPage() {
 
   useEffect(() => {
     Promise.all([
-      api.get(`/products/${slug}`),
-      api.get(`/reviews/product/${slug}`).catch(() => ({ data: [] }))
+      api.get(`products/${slug}`),
+      api.get(`reviews/product/${slug}`).catch(() => ({ data: [] }))
     ]).then(([prod, revs]) => {
       setProduct(prod)
       setReviews(Array.isArray(revs) ? revs : [])
@@ -74,7 +74,7 @@ export default function ProductDetailPage() {
     if (!user) return toast.error('Please login to leave a review')
     setSubmittingReview(true)
     try {
-      const rev = await api.post(`/reviews/product/${product._id}`, reviewForm)
+      const rev = await api.post(`reviews/product/${product._id}`, reviewForm)
       setReviews(prev => [rev, ...prev])
       setReviewForm({ rating: 5, title: '', comment: '' })
       toast.success('Review submitted!')

@@ -18,7 +18,7 @@ export default function AdminProducts() {
     try {
       const params = new URLSearchParams({ page, limit: 15, ...(search && { search }) })
       // Admin gets all products including inactive
-      const data = await api.get(`/products?${params}&showAll=true`)
+      const data = await api.get(`products?${params}&showAll=true`)
       setProducts(data.products || [])
       setTotal(data.total || 0)
       setPages(data.pages || 1)
@@ -31,7 +31,7 @@ export default function AdminProducts() {
     if (!confirm(`Delete "${name}"? This cannot be undone.`)) return
     setDeleting(id)
     try {
-      await api.delete(`/products/${id}`)
+      await api.delete(`products/${id}`)
       setProducts(ps => ps.filter(p => p._id !== id))
       toast.success('Product deleted')
     } catch (err) { toast.error(err.message) }
@@ -40,7 +40,7 @@ export default function AdminProducts() {
 
   const handleToggle = async (id) => {
     try {
-      const { isActive } = await api.patch(`/products/${id}/toggle`)
+      const { isActive } = await api.patch(`products/${id}/toggle`)
       setProducts(ps => ps.map(p => p._id === id ? { ...p, isActive } : p))
       toast.success(isActive ? 'Product activated' : 'Product hidden')
     } catch (err) { toast.error(err.message) }

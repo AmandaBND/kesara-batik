@@ -21,9 +21,9 @@ export default function HomePage() {
 
   useEffect(() => {
     Promise.all([
-      api.get('/products?featured=true&limit=8'),
-      api.get('/products?newArrival=true&limit=8'),
-      api.get('/products?trending=true&limit=4'),
+      api.get('products?featured=true&limit=8'),
+      api.get('products?newArrival=true&limit=8'),
+      api.get('products?trending=true&limit=4'),
     ]).then(([f, n, t]) => {
       setFeatured(f.products || [])
       setNewArrivals(n.products || [])

@@ -11,7 +11,7 @@ export function AdminUsers() {
   const fetch = async () => {
     setLoading(true)
     try {
-      const data = await api.get(`/admin/users?search=${search}`)
+      const data = await api.get(`admin/users?search=${search}`)
       setUsers(data.users || [])
     } finally { setLoading(false) }
   }

@@ -43,7 +43,7 @@ export default function ShopLayout() {
 
   useEffect(() => {
     const fetchRates = () => {
-      api.get('/currency/rates').then(data => {
+      api.get('currency/rates').then(data => {
         if (data?.rates) setRates(data.rates, data.updatedAt)
       }).catch(() => {})
     }
