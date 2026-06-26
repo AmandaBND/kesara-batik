@@ -128,6 +128,7 @@ export default function AdminProductForm() {
     e.preventDefault()
     setLoading(true)
     try {
+      console.log('[Product Form] Starting submission...')
       const fd = new FormData()
       FORM_FIELDS.forEach(k => {
         const v = form[k]
@@ -138,6 +139,8 @@ export default function AdminProductForm() {
       fd.append('variants', JSON.stringify(form.variants))
       fd.append('additionalInfo', JSON.stringify(form.additionalInfo))
       imageFiles.forEach(f => fd.append('images', f))
+      
+      console.log('[Product Form] Submitting with', imageFiles.length, 'images')
 
       if (isEdit) {
         await api.put(`/products/${id}`, fd)
@@ -147,7 +150,11 @@ export default function AdminProductForm() {
         toast.success('Product created!')
       }
       navigate('/admin/products')
-    } catch (err) { toast.error(err.message || 'Save failed') }
+    } catch (err) {
+      console.error('[Product Form Error]', err)
+      const errorMsg = err?.message || err?.data?.message || 'Save failed'
+      toast.error(errorMsg)
+    }
     finally { setLoading(false) }
   }
 
