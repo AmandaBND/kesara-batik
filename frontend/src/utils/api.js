@@ -1,7 +1,20 @@
 import axios from "axios";
 
+// Determine the correct base URL
+let baseURL = import.meta.env.VITE_API_URL;
+
+// If VITE_API_URL is not set or is set to a domain without protocol, handle it
+if (!baseURL) {
+  baseURL = "/api"; // Default fallback for same-origin requests
+} else if (!baseURL.startsWith("http")) {
+  // If it looks like a domain without protocol, add https://
+  baseURL = `https://${baseURL}/api`;
+}
+
+console.log("[API Config] Base URL:", baseURL);
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "/api",
+  baseURL,
   timeout: 30000,
 });
 
