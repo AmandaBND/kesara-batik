@@ -59,7 +59,7 @@ export default function CheckoutPage() {
 
   return (
     <>
-      <Helmet><title>Checkout | Kesara Batik</title></Helmet>
+      <Helmet><title>Checkout | Kesara Bathik</title></Helmet>
       <div className="max-w-6xl mx-auto px-4 sm:px-8 lg:px-8 py-10">
         <h1 className="font-display text-3xl font-bold mb-8">Checkout</h1>
         <div className="grid lg:grid-cols-3 gap-10">
@@ -126,7 +126,7 @@ export default function CheckoutPage() {
                 <div className="bg-cream rounded-xl p-4 text-sm space-y-2 mb-4">
                   <p className="font-semibold">Bank Transfer Details:</p>
                   <p>Bank: Commercial Bank of Ceylon</p>
-                  <p>Account Name: Kesara Batik</p>
+                  <p>Account Name: Kesara Bathik</p>
                   <p>Account Number: XXXX XXXX XXXX</p>
                   <p className="text-xs text-gray-400">Please send payment confirmation via WhatsApp after transfer.</p>
                 </div>

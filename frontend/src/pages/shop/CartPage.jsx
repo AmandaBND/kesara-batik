@@ -18,7 +18,7 @@ export function CartPage() {
 
   return (
     <>
-      <Helmet><title>Cart | Kesara Batik</title></Helmet>
+      <Helmet><title>Cart | Kesara Bathik</title></Helmet>
       <div className="section max-w-5xl">
         <h1 className="font-display text-3xl font-bold mb-8">Shopping Cart</h1>
         {items.length === 0 ? (

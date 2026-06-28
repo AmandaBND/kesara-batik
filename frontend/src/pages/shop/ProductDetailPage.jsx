@@ -101,7 +101,7 @@ export default function ProductDetailPage() {
   return (
     <>
       <Helmet>
-        <title>{product.name} | Kesara Batik</title>
+        <title>{product.name} | Kesara Bathik</title>
         <meta name="description" content={product.shortDescription || product.description?.slice(0, 160)} />
       </Helmet>
       <div className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-8 py-8">
@@ -271,7 +271,7 @@ export default function ProductDetailPage() {
                   </div>
                   {r.title && <p className="font-medium text-sm mb-1">{r.title}</p>}
                   <p className="text-sm text-gray-600">{r.comment}</p>
-                  {r.adminReply && <div className="mt-3 pl-3 border-l-2 border-gold bg-cream rounded-r-lg p-2"><p className="text-xs font-semibold text-gold">Kesara Batik replied:</p><p className="text-sm text-gray-600">{r.adminReply}</p></div>}
+                  {r.adminReply && <div className="mt-3 pl-3 border-l-2 border-gold bg-cream rounded-r-lg p-2"><p className="text-xs font-semibold text-gold">Kesara Bathik replied:</p><p className="text-sm text-gray-600">{r.adminReply}</p></div>}
                 </div>
               ))}
               {reviews.length === 0 && <p className="text-gray-500 text-sm">No reviews yet. Be the first to review!</p>}

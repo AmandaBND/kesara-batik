@@ -16,7 +16,7 @@ export default function OrderSuccessPage() {
       <div className="max-w-lg w-full text-center">
         <div className="text-7xl mb-6 animate-bounce">🎉</div>
         <h1 className="font-display text-4xl font-bold text-deep mb-3">Order Placed!</h1>
-        <p className="text-gray-500 mb-2">Thank you for shopping with Kesara Batik.</p>
+        <p className="text-gray-500 mb-2">Thank you for shopping with Kesara Bathik.</p>
         {order && <p className="text-gold font-bold text-lg mb-6">Order #{order.orderNumber}</p>}
         <div className="card p-6 text-left mb-6 space-y-2 text-sm">
           <p>📦 You'll receive a confirmation email shortly.</p>

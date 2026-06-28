@@ -4,14 +4,14 @@ export default function PrivacyPolicy() {
   return (
     <div className="section max-w-4xl mx-auto py-16">
       <Helmet>
-        <title>Privacy Policy | Kesara Batik</title>
-        <meta name="description" content="Kesara Batik Privacy Policy" />
+        <title>Privacy Policy | Kesara Bathik</title>
+        <meta name="description" content="Kesara Bathik Privacy Policy" />
       </Helmet>
 
       <h1 className="font-display text-3xl text-deep font-bold mb-4">Privacy Policy</h1>
       <p className="text-sm text-gray-600 mb-6">Effective Date: June 23, 2026 · Last Updated: June 23, 2026</p>
 
-      <p className="mb-4">Welcome to Kesara Batik! We create authentic, high-quality batik clothing in Sri Lanka and deliver our handcrafted creations worldwide. Protecting your privacy is important to us, and we are committed to handling your personal information responsibly and securely.</p>
+      <p className="mb-4">Welcome to Kesara Bathik! We create authentic, high-quality batik clothing in Sri Lanka and deliver our handcrafted creations worldwide. Protecting your privacy is important to us, and we are committed to handling your personal information responsibly and securely.</p>
 
       <h2 className="text-lg font-semibold mt-6 mb-2">1. Information We Collect</h2>
       <p className="mb-2">To process your orders and provide our services, we may collect:</p>
@@ -39,7 +39,7 @@ export default function PrivacyPolicy() {
       </ul>
 
       <h2 className="text-lg font-semibold mt-6 mb-2">2. Payment Security</h2>
-      <p className="mb-2">Your financial security is our highest priority. All online payments are processed securely through Dialog Genie, a PCI-DSS compliant payment gateway. Kesara Batik does NOT store your credit card or debit card information and does NOT have access to your banking credentials.</p>
+      <p className="mb-2">Your financial security is our highest priority. All online payments are processed securely through Dialog Genie, a PCI-DSS compliant payment gateway. Kesara Bathik does NOT store your credit card or debit card information and does NOT have access to your banking credentials.</p>
 
       <h2 className="text-lg font-semibold mt-6 mb-2">3. How We Use Your Information</h2>
       <ul className="list-disc list-inside mb-4">
@@ -61,7 +61,7 @@ export default function PrivacyPolicy() {
 
       <h2 className="text-lg font-semibold mt-6 mb-2">7. Contact Us</h2>
       <p className="mb-2">If you have any questions regarding this Privacy Policy or your personal information, please contact:</p>
-      <p className="mb-8 font-semibold">Kesara Batik<br/>Email: kesarabatik.info@gmail.com<br/>Phone: +94 77 488 1013</p>
+      <p className="mb-8 font-semibold">Kesara Bathik<br/>Email: kesarabatik.info@gmail.com<br/>Phone: +94 77 488 1013</p>
     </div>
   )
 }

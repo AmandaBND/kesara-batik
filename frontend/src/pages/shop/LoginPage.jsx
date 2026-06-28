@@ -32,13 +32,13 @@ export function LoginPage() {
 
   return (
     <>
-      <Helmet><title>Login | Kesara Batik</title></Helmet>
+      <Helmet><title>Login | Kesara Bathik</title></Helmet>
       <div className="min-h-screen flex items-center justify-center bg-cream px-4 py-16">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
-            <img src="/logo.png" alt="Kesara Batik" className="w-20 h-20 mx-auto mb-4 object-contain" />
+            <img src="/logo.png" alt="Kesara Bathik" className="w-20 h-20 mx-auto mb-4 object-contain" />
             <h1 className="font-display text-3xl font-bold text-deep">Welcome Back</h1>
-            <p className="text-gray-500 mt-2">Sign in to your Kesara Batik account</p>
+            <p className="text-gray-500 mt-2">Sign in to your Kesara Bathik account</p>
           </div>
           <div className="card p-8">
             <form onSubmit={handleSubmit} className="space-y-4">

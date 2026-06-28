@@ -34,7 +34,7 @@ export default function HomePage() {
   return (
     <>
       <Helmet>
-        <title>Kesara Batik | Authentic Sri Lankan Handcrafted Batik Fashion</title>
+        <title>Kesara Bathik | Authentic Sri Lankan Handcrafted Batik Fashion</title>
         <meta name="description" content="Shop authentic handcrafted Sri Lankan Batik sarees, sarongs, shirts and family kits. Free shipping to Canada & USA on orders over CA$120." />
       </Helmet>
 

@@ -34,7 +34,7 @@ export function AccountPage() {
 
   return (
     <>
-      <Helmet><title>My Account | Kesara Batik</title></Helmet>
+      <Helmet><title>My Account | Kesara Bathik</title></Helmet>
       <div className="section max-w-2xl">
         <h1 className="font-display text-3xl font-bold mb-8">My Account</h1>
         <div className="card p-6 mb-6">

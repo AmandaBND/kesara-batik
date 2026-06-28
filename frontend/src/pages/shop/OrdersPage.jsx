@@ -25,7 +25,7 @@ export default function OrdersPage() {
 
   return (
     <>
-      <Helmet><title>My Orders | Kesara Batik</title></Helmet>
+      <Helmet><title>My Orders | Kesara Bathik</title></Helmet>
       <div className="section max-w-4xl">
         <h1 className="font-display text-3xl font-bold mb-8">My Orders</h1>
         {loading ? (

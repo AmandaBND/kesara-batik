@@ -76,10 +76,10 @@ export default function ShopLayout() {
           <div className="flex items-center justify-between h-16 gap-4">
             {/* Logo */}
             <Link to="/" className="flex items-center gap-3 shrink-0">
-             <img src={logo} alt="Kesara Batik" className="h-10 w-10 object-contain" />
+             <img src={logo} alt="Kesara Bathik" className="h-10 w-10 object-contain" />
               <div className="hidden sm:block">
                 <div className="font-display text-lg font-bold text-deep leading-tight">කේසර බතික්</div>
-                <div className="text-xs text-gold font-medium tracking-widest">KESARA BATIK</div>
+                <div className="text-xs text-gold font-medium tracking-widest">KESARA BATHIK</div>
               </div>
             </Link>
 
@@ -197,10 +197,10 @@ export default function ShopLayout() {
         <div className="max-w-7xl mx-auto px-8 py-16 grid grid-cols-1 md:grid-cols-4 gap-12">
           <div>
             <div className="flex items-center gap-3 mb-4">
-              <img src="/logo.png" alt="Kesara Batik" className="h-12 w-12 object-contain" />
+              <img src="/logo.png" alt="Kesara Bathik" className="h-12 w-12 object-contain" />
               <div>
                 <div className="font-display text-white text-lg font-bold">කේසර බතික්</div>
-                <div className="text-gold text-xs tracking-widest">KESARA BATIK</div>
+                <div className="text-gold text-xs tracking-widest">KESARA BATHIK</div>
               </div>
             </div>
             <p className="text-sm leading-relaxed text-gray-500">Authentic handcrafted Sri Lankan Batik fashion. Shipped from Colombo to Canada, USA, UAE and worldwide.</p>
@@ -230,7 +230,7 @@ export default function ShopLayout() {
           </div>
         </div>
         <div className="border-t border-white/10 py-6 px-8 flex flex-wrap items-center justify-between gap-4 max-w-7xl mx-auto">
-          <p className="text-xs text-gray-600">© 2024 Kesara Batik. All rights reserved.</p>
+          <p className="text-xs text-gray-600">© 2024 Kesara Bathik. All rights reserved.</p>
           <div className="flex gap-2">
             {['💳 Visa','💳 Mastercard','🔌 Dialog Genie','🏦 Bank Wire'].map(p => (
               <span key={p} className="text-xs px-2 py-1 border border-white/10 rounded text-gray-500">{p}</span>

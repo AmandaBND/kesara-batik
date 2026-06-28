@@ -7,7 +7,7 @@ export default function WishlistPage() {
   const { items } = useWishlistStore()
   return (
     <>
-      <Helmet><title>My Wishlist | Kesara Batik</title></Helmet>
+      <Helmet><title>My Wishlist | Kesara Bathik</title></Helmet>
       <div className="section">
         <h1 className="font-display text-3xl font-bold mb-8">My Wishlist ❤️</h1>
         {items.length === 0 ? (

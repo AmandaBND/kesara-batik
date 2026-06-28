@@ -19,7 +19,7 @@ export default function RegisterPage() {
     try {
       const data = await api.post('auth/register', { name: form.name, email: form.email, password: form.password })
       setAuth(data.user, data.token)
-      toast.success('Account created! Welcome to Kesara Batik 🎉')
+      toast.success('Account created! Welcome to Kesara Bathik 🎉')
       navigate('/')
     } catch (err) { toast.error(err.message || 'Registration failed') }
     finally { setLoading(false) }
@@ -33,13 +33,13 @@ export default function RegisterPage() {
 
   return (
     <>
-      <Helmet><title>Create Account | Kesara Batik</title></Helmet>
+      <Helmet><title>Create Account | Kesara Bathik</title></Helmet>
       <div className="min-h-screen flex items-center justify-center bg-cream px-4 py-16">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
-            <img src="/logo.png" alt="Kesara Batik" className="w-20 h-20 mx-auto mb-4 object-contain" />
+            <img src="/logo.png" alt="Kesara Bathik" className="w-20 h-20 mx-auto mb-4 object-contain" />
             <h1 className="font-display text-3xl font-bold text-deep">Create Account</h1>
-            <p className="text-gray-500 mt-2">Join the Kesara Batik family</p>
+            <p className="text-gray-500 mt-2">Join the Kesara Bathik family</p>
           </div>
           <div className="card p-8">
             <form onSubmit={handleSubmit} className="space-y-4">

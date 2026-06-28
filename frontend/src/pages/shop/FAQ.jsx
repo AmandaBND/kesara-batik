@@ -4,8 +4,8 @@ export default function FAQ() {
   return (
     <div className="section max-w-4xl mx-auto py-16">
       <Helmet>
-        <title>FAQs | Kesara Batik</title>
-        <meta name="description" content="Kesara Batik Frequently Asked Questions" />
+        <title>FAQs | Kesara Bathik</title>
+        <meta name="description" content="Kesara Bathik Frequently Asked Questions" />
       </Helmet>
 
       <h1 className="font-display text-3xl text-deep font-bold mb-4">Frequently Asked Questions</h1>
