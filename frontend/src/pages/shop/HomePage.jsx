@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Helmet } from 'react-helmet-async'
 import { motion } from 'framer-motion'
 import ProductCard from '../../components/shop/ProductCard'
+import Seo from '../../components/common/Seo'
 import api from '../../utils/api'
 
 const CATEGORIES = [
@@ -33,10 +33,11 @@ export default function HomePage() {
 
   return (
     <>
-      <Helmet>
-        <title>Kesara Bathik | Authentic Sri Lankan Handcrafted Batik Fashion</title>
-        <meta name="description" content="Shop authentic handcrafted Sri Lankan Batik sarees, sarongs, shirts and family kits. Free shipping to Canada & USA on orders over CA$120." />
-      </Helmet>
+      <Seo
+        title="Kesara Bathik | Authentic Sri Lankan Handcrafted Batik Fashion"
+        description="Shop authentic handcrafted Sri Lankan Batik sarees, sarongs, shirts and family kits. Free shipping to Canada & USA on orders over CA$120."
+        path="/"
+      />
 
       {/* HERO */}
       <section className="bg-gradient-to-br from-deep via-deep-brown to-[#3D2B0E] min-h-[600px] flex items-center relative overflow-hidden">

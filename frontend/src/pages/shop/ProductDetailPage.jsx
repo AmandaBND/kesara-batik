@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { Helmet } from 'react-helmet-async'
 import { motion } from 'framer-motion'
 import { FiStar, FiHeart, FiShoppingCart, FiTruck, FiShield, FiRefreshCw } from 'react-icons/fi'
 import { useCartStore, useWishlistStore, useAuthStore, useCurrencyStore } from '../../store'
 import { getAvailableStock, findVariant, hasVariants, getCartQtyForVariant } from '../../utils/stock'
+import Seo from '../../components/common/Seo'
 import api from '../../utils/api'
 import toast from 'react-hot-toast'
 
@@ -100,10 +100,12 @@ export default function ProductDetailPage() {
 
   return (
     <>
-      <Helmet>
-        <title>{product.name} | Kesara Bathik</title>
-        <meta name="description" content={product.shortDescription || product.description?.slice(0, 160)} />
-      </Helmet>
+      <Seo
+        title={`${product.name} | Kesara Bathik`}
+        description={product.shortDescription || product.description?.slice(0, 160)}
+        path={`/products/${slug}`}
+        image={product.images?.[0]?.url}
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-8 py-8">
         {/* Breadcrumb */}
         <nav className="text-sm text-gray-500 mb-6 flex gap-2 flex-wrap">

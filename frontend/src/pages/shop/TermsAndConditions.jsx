@@ -1,12 +1,13 @@
-import { Helmet } from 'react-helmet-async'
+import Seo from '../../components/common/Seo'
 
 export default function TermsAndConditions() {
   return (
     <div className="section max-w-4xl mx-auto py-16">
-      <Helmet>
-        <title>Terms & Conditions | Kesara Bathik</title>
-        <meta name="description" content="Kesara Bathik Terms & Conditions" />
-      </Helmet>
+      <Seo
+        title="Terms & Conditions | Kesara Bathik"
+        description="Read the terms and conditions for shopping with Kesara Bathik, Sri Lanka's authentic handcrafted batik fashion store."
+        path="/terms-and-conditions"
+      />
 
       <h1 className="font-display text-3xl text-deep font-bold mb-4">Terms & Conditions</h1>
 

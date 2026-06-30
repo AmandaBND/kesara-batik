@@ -1,12 +1,13 @@
-import { Helmet } from 'react-helmet-async'
+import Seo from '../../components/common/Seo'
 
 export default function FAQ() {
   return (
     <div className="section max-w-4xl mx-auto py-16">
-      <Helmet>
-        <title>FAQs | Kesara Bathik</title>
-        <meta name="description" content="Kesara Bathik Frequently Asked Questions" />
-      </Helmet>
+      <Seo
+        title="FAQs | Kesara Bathik"
+        description="Answers to common questions about shipping, sizing and refunds at Kesara Bathik."
+        path="/faq"
+      />
 
       <h1 className="font-display text-3xl text-deep font-bold mb-4">Frequently Asked Questions</h1>
       <p className="text-sm text-gray-600 mb-6">Answers to common questions about shipping, sizing and refunds.</p>

@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
-import { useSearchParams } from 'react-router-dom'
-import { Helmet } from 'react-helmet-async'
+import { useSearchParams, useLocation } from 'react-router-dom'
 import { FiFilter, FiX, FiChevronDown } from 'react-icons/fi'
 import ProductCard from '../../components/shop/ProductCard'
+import Seo from '../../components/common/Seo'
 import api from '../../utils/api'
 
 const SUBCATEGORIES = {
@@ -13,7 +13,26 @@ const SUBCATEGORIES = {
   Accessories: ["Bags","Jewellery","Clutches","Slippers","Hair Accessories"],
 }
 
+// Clean URLs like /women should behave as a filtered view of /products,
+// not a separate empty/duplicate page.
+const PATH_CATEGORY_MAP = {
+  '/women': 'Women',
+  '/men': 'Men',
+  '/kids': 'Kids',
+  '/family-kits': 'Family Kits',
+  '/accessories': 'Accessories',
+}
+
+const CATEGORY_DESCRIPTIONS = {
+  Women: 'Shop handcrafted Sri Lankan Bathik sarees, frocks, tops and kurtha sets for women. Authentic batik fashion shipped worldwide from Colombo.',
+  Men: "Shop handcrafted Sri Lankan Bathik shirts, sarongs and Avurudu kits for men. Authentic batik fashion shipped worldwide from Colombo.",
+  Kids: 'Shop handcrafted Sri Lankan Bathik frocks, sarees and shirts for kids. Authentic batik fashion shipped worldwide from Colombo.',
+  'Family Kits': 'Shop matching handcrafted Sri Lankan Bathik family kits. Coordinated batik outfits for the whole family, shipped worldwide.',
+  Accessories: 'Shop handcrafted Sri Lankan Bathik bags, jewellery, clutches and accessories. Authentic batik craftsmanship shipped worldwide.',
+}
+
 export default function ProductsPage() {
+  const location = useLocation()
   const [params, setParams] = useSearchParams()
   const [products, setProducts] = useState([])
   const [total, setTotal] = useState(0)
@@ -24,8 +43,9 @@ export default function ProductsPage() {
   const [sort, setSort] = useState('newest')
   const [priceRange, setPriceRange] = useState({ min: '', max: '' })
 
+  const pathCategory = PATH_CATEGORY_MAP[location.pathname]
   const category = params.get('category') || ''
-  const parentCategory = params.get('parentCategory') || ''
+  const parentCategory = params.get('parentCategory') || pathCategory || ''
   const search = params.get('search') || ''
   const newArrival = params.get('newArrival') || ''
   const featured = params.get('featured') || ''
@@ -49,10 +69,11 @@ export default function ProductsPage() {
   }, [category, parentCategory, search, newArrival, featured, sort, page, priceRange])
 
   const title = parentCategory || category || (search ? `Search: "${search}"` : null) || (newArrival ? 'New Arrivals' : 'All Products')
+  const description = CATEGORY_DESCRIPTIONS[parentCategory] || 'Shop authentic handcrafted Sri Lankan Bathik sarees, sarongs, shirts and family kits. Shipped from Colombo worldwide.'
 
   return (
     <>
-      <Helmet><title>{title} | Kesara Bathik</title></Helmet>
+      <Seo title={`${title} | Kesara Bathik`} description={description} path={location.pathname} />
       <div className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-8 py-8">
         <div className="flex items-center justify-between mb-6">
           <div>

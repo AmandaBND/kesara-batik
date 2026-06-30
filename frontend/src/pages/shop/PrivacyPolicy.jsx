@@ -1,12 +1,13 @@
-import { Helmet } from 'react-helmet-async'
+import Seo from '../../components/common/Seo'
 
 export default function PrivacyPolicy() {
   return (
     <div className="section max-w-4xl mx-auto py-16">
-      <Helmet>
-        <title>Privacy Policy | Kesara Bathik</title>
-        <meta name="description" content="Kesara Bathik Privacy Policy" />
-      </Helmet>
+      <Seo
+        title="Privacy Policy | Kesara Bathik"
+        description="Read the Kesara Bathik privacy policy to learn how we collect, use and protect your personal data."
+        path="/privacy-policy"
+      />
 
       <h1 className="font-display text-3xl text-deep font-bold mb-4">Privacy Policy</h1>
       <p className="text-sm text-gray-600 mb-6">Effective Date: June 23, 2026 · Last Updated: June 23, 2026</p>

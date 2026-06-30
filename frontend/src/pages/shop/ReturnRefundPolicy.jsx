@@ -1,12 +1,13 @@
-import { Helmet } from 'react-helmet-async'
+import Seo from '../../components/common/Seo'
 
 export default function ReturnRefundPolicy() {
   return (
     <div className="section max-w-4xl mx-auto py-16">
-      <Helmet>
-        <title>Return & Refund Policy | Kesara Bathik</title>
-        <meta name="description" content="Kesara Bathik Return & Refund Policy" />
-      </Helmet>
+      <Seo
+        title="Return & Refund Policy | Kesara Bathik"
+        description="Read the Kesara Bathik return and refund policy, including timelines and eligibility for handcrafted batik orders."
+        path="/return-refund-policy"
+      />
 
       <h1 className="font-display text-3xl text-deep font-bold mb-4">Refund & Return Policy</h1>
 

@@ -4,5 +4,10 @@ Disallow: /admin
 Disallow: /account
 Disallow: /checkout
 Disallow: /cart
+Disallow: /login
+Disallow: /register
+Disallow: /orders
+Disallow: /wishlist
+Disallow: /order-success
 
-Sitemap: https://kesarabathik.com/sitemap.xml
+Sitemap: https://www.kesarabathik.com/sitemap.xml
