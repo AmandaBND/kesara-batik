@@ -77,7 +77,29 @@ Example: `mongodb+srv://admin:yourpassword@cluster0.xxxxx.mongodb.net/kesara-bat
 
 ---
 
-## STEP 6 — Deploy Backend on Railway (FREE)
+## STEP 6 — Set Up Brevo (Transactional Order Emails)
+
+You're using **Brevo** (formerly Sendinblue) to send order confirmation emails to customers and new-order alerts to your inbox. Free tier covers 300 emails/day, plenty for a new store.
+
+1. Go to https://app.brevo.com → **Settings** → **SMTP & API** → **SMTP** tab
+2. Copy these four values:
+   - SMTP server → `smtp-relay.brevo.com`
+   - Port → `587`
+   - Login → looks like `xxxxxxx@smtp-brevo.com` → this is `BREVO_SMTP_LOGIN`
+   - Password (the SMTP key, not your Brevo account password) → `BREVO_SMTP_PASSWORD`
+3. **Authenticate your domain** (you've already done this ✅ — `kesarabathik.com` shows "Authenticated" under **Senders, domains, IPs → Domains**). This is what lets you send `@kesarabathik.com` emails without landing in spam:
+   - Brevo code (TXT) on `@`
+   - DKIM 1 + DKIM 2 (CNAME records)
+   - DMARC (TXT on `_dmarc`)
+   - All of these live in **Namecheap → Domain List → kesarabathik.com → Advanced DNS**
+4. Pick an address to send from, e.g. `orders@kesarabathik.com` — it doesn't need to be a real working inbox since the domain itself is authenticated; this just becomes `EMAIL_FROM`
+5. Pick a real inbox you actually check for `ADMIN_EMAIL` (where "new order" alerts land) — this can be a Gmail address, doesn't have to be on your domain
+
+> ⚠️ Treat the SMTP password as a secret, same as a database password. Never commit it to GitHub — it only goes into Railway's environment variables (Step 8) and your local `.env` file, both of which are already git-ignored.
+
+---
+
+## STEP 7 — Deploy Backend on Railway (FREE)
 
 1. Go to https://railway.app → Sign in with GitHub
 2. Click **"New Project"** → **"Deploy from GitHub Repo"**
@@ -107,23 +129,21 @@ Example: `mongodb+srv://admin:yourpassword@cluster0.xxxxx.mongodb.net/kesara-bat
    PAYPAL_CLIENT_ID=...
    PAYPAL_CLIENT_SECRET=...
    PAYPAL_MODE=live
-   EMAIL_HOST=smtp.gmail.com
-   EMAIL_PORT=587
-   EMAIL_USER=yourgmail@gmail.com
-   EMAIL_PASS=your_gmail_app_password
+   BREVO_SMTP_HOST=smtp-relay.brevo.com
+   BREVO_SMTP_PORT=587
+   BREVO_SMTP_LOGIN=xxxxxxx@smtp-brevo.com
+   BREVO_SMTP_PASSWORD=your_brevo_smtp_password
+   EMAIL_FROM=orders@kesarabathik.com
+   EMAIL_FROM_NAME=Kesara Bathik
+   ADMIN_EMAIL=your_admin_inbox@kesarabathik.com
    FRONTEND_URL=https://kesarabatik.com
    ```
 7. Railway gives you a URL like: `https://kesara-batik-production.up.railway.app`
 8. Note this URL → it becomes `VITE_API_URL`
 
-**Gmail App Password:**
-- Go to your Google Account → Security → 2-Step Verification (enable it)
-- Then: Security → App Passwords → Create one called "Kesara Batik"
-- Use this 16-char password as `EMAIL_PASS`
-
 ---
 
-## STEP 7 — Deploy Frontend on Vercel (FREE)
+## STEP 8 — Deploy Frontend on Vercel (FREE)
 
 1. Go to https://vercel.com → Sign in with GitHub
 2. Click **"New Project"** → Import your GitHub repo

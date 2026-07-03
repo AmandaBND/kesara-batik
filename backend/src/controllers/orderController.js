@@ -2,6 +2,7 @@ const asyncHandler = require('express-async-handler');
 const Order = require('../models/Order');
 const Product = require('../models/Product');
 const { findVariant, getAvailableStock } = require('../utils/stock');
+const { sendOrderInvoiceEmails, sendShippingUpdateEmail } = require('../services/emailService');
 
 // POST /api/orders
 exports.createOrder = asyncHandler(async (req, res) => {
@@ -85,6 +86,12 @@ exports.createOrder = asyncHandler(async (req, res) => {
 
   const populated = await Order.findById(order._id).populate('user', 'name email');
   res.status(201).json(populated);
+
+  // Fire-and-forget: email failures are logged inside emailService and never
+  // affect the order itself or the response already sent to the customer.
+  sendOrderInvoiceEmails(populated).catch((err) =>
+    console.error('[email] order invoice dispatch failed:', err.message),
+  );
 });
 
 // GET /api/orders/my
@@ -122,13 +129,22 @@ exports.updateOrderStatus = asyncHandler(async (req, res) => {
   const order = await Order.findById(req.params.id);
   if (!order) return res.status(404).json({ message: 'Order not found' });
 
+  const previousStatus = order.status;
   order.status = status;
   if (trackingNumber) order.trackingNumber = trackingNumber;
   if (courier) order.courier = courier;
   order.statusHistory.push({ status, note: note || `Status updated to ${status}`, updatedBy: req.user._id });
 
   await order.save();
-  res.json(order);
+  const populated = await Order.findById(order._id).populate('user', 'name email');
+  res.json(populated);
+
+  // Send shipping notification when status first moves to 'shipped'
+  if (status === 'shipped' && previousStatus !== 'shipped') {
+    sendShippingUpdateEmail(populated).catch(err =>
+      console.error('[email] shipping update email failed:', err.message)
+    );
+  }
 });
 
 // POST /api/orders/:id/refund (admin)
