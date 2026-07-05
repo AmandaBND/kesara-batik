@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCartStore, useAuthStore, useCurrencyStore } from '../../store'
-import { getUnitPrice } from '../../utils/pricing'
+import { getUnitPrice, getCartSubtotal, getShipping, getCartTotal } from '../../utils/pricing'
 import api from '../../utils/api'
 import toast from 'react-hot-toast'
 import Seo from '../../components/common/Seo'
@@ -19,7 +19,7 @@ const COUNTRIES = [
 ]
 
 export default function CheckoutPage() {
-  const { items, subtotal, shipping, total, clear } = useCartStore()
+  const { items, clear } = useCartStore()
   const { user } = useAuthStore()
   const { formatAmount, currency, rates } = useCurrencyStore()
   const navigate = useNavigate()
@@ -39,6 +39,15 @@ export default function CheckoutPage() {
 
   const addressComplete = address.fullName && address.email && address.address && address.city && address.country
 
+  // Genie app is registered in LKR, so force Genie checkout amounts to LKR.
+  // Bank transfer keeps the currently selected display currency.
+  const checkoutCurrency = payMethod === 'genie' ? 'LKR' : (currency || 'LKR')
+  const checkoutSubtotal = getCartSubtotal(items, checkoutCurrency, rates)
+  const checkoutShipping = getShipping(items, checkoutCurrency, rates)
+  const checkoutTotal = getCartTotal(items, checkoutCurrency, rates)
+  const formatCheckoutAmount = (amount) =>
+    checkoutCurrency === 'LKR' ? `LKR ${Number(amount).toFixed(2)}` : formatAmount(amount)
+
   const createOrderPayload = () => ({
     items: items.map(i => ({
       product:  i.product._id,
@@ -48,12 +57,12 @@ export default function CheckoutPage() {
     })),
     shippingAddress: address,
     pricing: {
-      subtotal: subtotal(),
-      shipping: shipping(),
+      subtotal: checkoutSubtotal,
+      shipping: checkoutShipping,
       tax:      0,
       discount: 0,
-      total:    total(),
-      currency: currency || 'LKR',
+      total:    checkoutTotal,
+      currency: checkoutCurrency,
     },
     payment: { method: payMethod, status: 'pending' },
   })
@@ -276,10 +285,10 @@ export default function CheckoutPage() {
                 ) : payMethod === 'genie' ? (
                   <>
                     <img src="/genie-logo.jpg" alt="" className="h-5 rounded inline" />
-                    Pay {formatAmount(total())} via Genie →
+                    Pay {formatCheckoutAmount(checkoutTotal)} via Genie →
                   </>
                 ) : (
-                  `Place Order · ${formatAmount(total())}`
+                  `Place Order · ${formatCheckoutAmount(checkoutTotal)}`
                 )}
               </button>
               <p className="text-center text-xs text-gray-400 mt-3">
@@ -305,7 +314,7 @@ export default function CheckoutPage() {
                       {item.variant?.size  && <p className="text-xs text-gray-400">Size: {item.variant.size}</p>}
                       {item.variant?.color && <p className="text-xs text-gray-400">Colour: {item.variant.color}</p>}
                       <p className="text-sm font-bold text-gold">
-                        {formatAmount(getUnitPrice(item.product, currency, rates))} × {item.quantity}
+                        {formatCheckoutAmount(getUnitPrice(item.product, checkoutCurrency, rates))} × {item.quantity}
                       </p>
                     </div>
                   </div>
@@ -313,20 +322,20 @@ export default function CheckoutPage() {
               </div>
               <div className="border-t pt-4 space-y-2 text-sm">
                 <div className="flex justify-between text-gray-500">
-                  <span>Subtotal</span><span>{formatAmount(subtotal())}</span>
+                  <span>Subtotal</span><span>{formatCheckoutAmount(checkoutSubtotal)}</span>
                 </div>
                 <div className="flex justify-between text-gray-500">
                   <span>Shipping</span>
                   <span>
-                    {shipping() === 0
+                    {checkoutShipping === 0
                       ? <span className="text-green-600 font-semibold">FREE 🎉</span>
-                      : formatAmount(shipping())
+                      : formatCheckoutAmount(checkoutShipping)
                     }
                   </span>
                 </div>
                 <div className="flex justify-between font-bold text-lg border-t pt-2">
                   <span>Total</span>
-                  <span className="text-gold">{formatAmount(total())}</span>
+                  <span className="text-gold">{formatCheckoutAmount(checkoutTotal)}</span>
                 </div>
               </div>
 
