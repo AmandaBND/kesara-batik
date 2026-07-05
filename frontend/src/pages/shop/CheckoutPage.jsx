@@ -1,54 +1,99 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Helmet } from 'react-helmet-async'
 import { useCartStore, useAuthStore, useCurrencyStore } from '../../store'
 import { getUnitPrice } from '../../utils/pricing'
 import api from '../../utils/api'
 import toast from 'react-hot-toast'
-import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js'
+import Seo from '../../components/common/Seo'
+
+const HNB_ACCOUNT = {
+  bank:    'HNB — Hatton National Bank',
+  branch:  'Tangalle (086)',
+  account: '086020259190',
+  name:    'Himal G M H',
+}
+
+const COUNTRIES = [
+  'Sri Lanka','Canada','USA','United Kingdom','Australia',
+  'UAE','Japan','South Korea','Germany','France','Other',
+]
 
 export default function CheckoutPage() {
   const { items, subtotal, shipping, total, clear } = useCartStore()
   const { user } = useAuthStore()
   const { formatAmount, currency, rates } = useCurrencyStore()
   const navigate = useNavigate()
-  const [step, setStep] = useState(1) // 1: address, 2: payment
-  const [payMethod, setPayMethod] = useState('stripe')
-  const [loading, setLoading] = useState(false)
-  const [address, setAddress] = useState({
-    fullName: user?.name || '', phone: '', email: user?.email || '',
-    address: '', city: '', state: '', postalCode: '', country: 'Canada'
+
+  const [payMethod, setPayMethod] = useState('genie')
+  const [loading,   setLoading]   = useState(false)
+  const [address,   setAddress]   = useState({
+    fullName:   user?.name  || '',
+    email:      user?.email || '',
+    phone:      '',
+    address:    '',
+    city:       '',
+    state:      '',
+    postalCode: '',
+    country:    'Sri Lanka',
   })
 
+  const addressComplete = address.fullName && address.email && address.address && address.city && address.country
+
   const createOrderPayload = () => ({
-    items: items.map(i => ({ product: i.product._id, quantity: i.quantity, price: i.price, variant: i.variant })),
+    items: items.map(i => ({
+      product:  i.product._id,
+      quantity: i.quantity,
+      price:    i.price,
+      variant:  i.variant,
+    })),
     shippingAddress: address,
     pricing: {
       subtotal: subtotal(),
       shipping: shipping(),
-      tax: 0,
+      tax:      0,
       discount: 0,
-      total: total(),
-      currency: currency === 'LKR' ? 'LKR' : 'CAD',
+      total:    total(),
+      currency: currency || 'LKR',
     },
     payment: { method: payMethod, status: 'pending' },
   })
 
-  const handleStripeCheckout = async () => {
+  // ── GENIE: create order → get Genie payment URL → redirect ──
+  const handleGenieCheckout = async () => {
+    if (!addressComplete) { toast.error('Please complete your shipping address'); return }
+    setLoading(true)
+    try {
+      // 1. Create order in our system
+      const order = await api.post('orders', createOrderPayload())
+      // 2. Request Genie payment session from our backend
+      const { paymentUrl } = await api.post('payments/genie/create', { orderId: order._id })
+      if (!paymentUrl) throw new Error('Could not get Genie payment URL')
+      // 3. Redirect to Genie hosted checkout page
+      window.location.href = paymentUrl
+    } catch (err) {
+      toast.error(err.message || 'Could not initiate Genie payment. Try bank transfer.')
+      setLoading(false)
+    }
+    // Note: loading stays true while redirecting — intentional
+  }
+
+  // ── BANK TRANSFER: create order, show instructions ──────────
+  const handleBankTransfer = async () => {
+    if (!addressComplete) { toast.error('Please complete your shipping address'); return }
     setLoading(true)
     try {
       const order = await api.post('orders', createOrderPayload())
-      const { clientSecret } = await api.post('payments/stripe/intent', { amount: total(), orderId: order._id })
-      // In production, use Stripe Elements with the clientSecret
-      // For now, simulate payment confirmation
-      await api.put(`/orders/${order._id}/status`, { status: 'confirmed', note: 'Payment confirmed' })
-      await api.post('payments/stripe/intent', { amount: 0, orderId: order._id }) // demo
       clear()
-      navigate(`/order-success/${order._id}`)
-      toast.success('Order placed successfully! 🎉')
-    } catch (err) { toast.error(err.message || 'Payment failed') }
-    finally { setLoading(false) }
+      navigate(`/order-success/${order._id}?method=bank`)
+      toast.success('Order placed! Please complete your bank transfer. 🏦')
+    } catch (err) {
+      toast.error(err.message || 'Failed to place order')
+    } finally {
+      setLoading(false)
+    }
   }
+
+  const handlePlaceOrder = payMethod === 'genie' ? handleGenieCheckout : handleBankTransfer
 
   if (items.length === 0) return (
     <div className="section text-center py-20">
@@ -59,25 +104,69 @@ export default function CheckoutPage() {
 
   return (
     <>
-      <Helmet><title>Checkout | Kesara Bathik</title></Helmet>
-      <div className="max-w-6xl mx-auto px-4 sm:px-8 lg:px-8 py-10">
+      <Seo title="Checkout | Kesara Bathik" path="/checkout" />
+      <div className="max-w-6xl mx-auto px-4 sm:px-8 py-10">
         <h1 className="font-display text-3xl font-bold mb-8">Checkout</h1>
+
         <div className="grid lg:grid-cols-3 gap-10">
-          <div className="lg:col-span-2">
+          {/* ── LEFT: Address + Payment ── */}
+          <div className="lg:col-span-2 space-y-6">
+
             {/* Step 1: Shipping */}
-            <div className="card p-6 mb-6">
-              <h2 className="font-bold text-lg mb-4 flex items-center gap-2"><span className="w-7 h-7 rounded-full bg-gold text-deep flex items-center justify-center text-sm font-bold">1</span> Shipping Address</h2>
+            <div className="card p-6">
+              <h2 className="font-bold text-lg mb-5 flex items-center gap-2">
+                <span className="w-7 h-7 rounded-full bg-gold text-deep flex items-center justify-center text-sm font-bold">1</span>
+                Shipping Address
+              </h2>
               <div className="grid grid-cols-2 gap-4">
-                <div className="col-span-2"><label className="text-sm font-semibold block mb-1">Full Name *</label><input required value={address.fullName} onChange={e => setAddress(a => ({...a, fullName: e.target.value}))} className="input" /></div>
-                <div><label className="text-sm font-semibold block mb-1">Email *</label><input type="email" required value={address.email} onChange={e => setAddress(a => ({...a, email: e.target.value}))} className="input" /></div>
-                <div><label className="text-sm font-semibold block mb-1">Phone</label><input value={address.phone} onChange={e => setAddress(a => ({...a, phone: e.target.value}))} className="input" /></div>
-                <div className="col-span-2"><label className="text-sm font-semibold block mb-1">Street Address *</label><input required value={address.address} onChange={e => setAddress(a => ({...a, address: e.target.value}))} className="input" /></div>
-                <div><label className="text-sm font-semibold block mb-1">City *</label><input required value={address.city} onChange={e => setAddress(a => ({...a, city: e.target.value}))} className="input" /></div>
-                <div><label className="text-sm font-semibold block mb-1">State/Province</label><input value={address.state} onChange={e => setAddress(a => ({...a, state: e.target.value}))} className="input" /></div>
-                <div><label className="text-sm font-semibold block mb-1">Postal Code</label><input value={address.postalCode} onChange={e => setAddress(a => ({...a, postalCode: e.target.value}))} className="input" /></div>
-                <div><label className="text-sm font-semibold block mb-1">Country *</label>
-                  <select required value={address.country} onChange={e => setAddress(a => ({...a, country: e.target.value}))} className="input">
-                    {['Canada','USA','United Kingdom','Australia','UAE','Japan','South Korea','Germany','France','Sri Lanka','Other'].map(c => <option key={c}>{c}</option>)}
+                <div className="col-span-2">
+                  <label className="text-sm font-semibold block mb-1">Full Name *</label>
+                  <input required value={address.fullName}
+                    onChange={e => setAddress(a => ({ ...a, fullName: e.target.value }))}
+                    className="input" placeholder="Himal Perera" />
+                </div>
+                <div>
+                  <label className="text-sm font-semibold block mb-1">Email *</label>
+                  <input type="email" required value={address.email}
+                    onChange={e => setAddress(a => ({ ...a, email: e.target.value }))}
+                    className="input" placeholder="you@email.com" />
+                </div>
+                <div>
+                  <label className="text-sm font-semibold block mb-1">Phone</label>
+                  <input value={address.phone}
+                    onChange={e => setAddress(a => ({ ...a, phone: e.target.value }))}
+                    className="input" placeholder="+94 77 123 4567" />
+                </div>
+                <div className="col-span-2">
+                  <label className="text-sm font-semibold block mb-1">Street Address *</label>
+                  <input required value={address.address}
+                    onChange={e => setAddress(a => ({ ...a, address: e.target.value }))}
+                    className="input" placeholder="45 Temple Road" />
+                </div>
+                <div>
+                  <label className="text-sm font-semibold block mb-1">City *</label>
+                  <input required value={address.city}
+                    onChange={e => setAddress(a => ({ ...a, city: e.target.value }))}
+                    className="input" placeholder="Colombo" />
+                </div>
+                <div>
+                  <label className="text-sm font-semibold block mb-1">State / Province</label>
+                  <input value={address.state}
+                    onChange={e => setAddress(a => ({ ...a, state: e.target.value }))}
+                    className="input" placeholder="Western" />
+                </div>
+                <div>
+                  <label className="text-sm font-semibold block mb-1">Postal Code</label>
+                  <input value={address.postalCode}
+                    onChange={e => setAddress(a => ({ ...a, postalCode: e.target.value }))}
+                    className="input" placeholder="00300" />
+                </div>
+                <div>
+                  <label className="text-sm font-semibold block mb-1">Country *</label>
+                  <select required value={address.country}
+                    onChange={e => setAddress(a => ({ ...a, country: e.target.value }))}
+                    className="input">
+                    {COUNTRIES.map(c => <option key={c}>{c}</option>)}
                   </select>
                 </div>
               </div>
@@ -85,83 +174,176 @@ export default function CheckoutPage() {
 
             {/* Step 2: Payment */}
             <div className="card p-6">
-              <h2 className="font-bold text-lg mb-4 flex items-center gap-2"><span className="w-7 h-7 rounded-full bg-gold text-deep flex items-center justify-center text-sm font-bold">2</span> Payment Method</h2>
-              <div className="grid grid-cols-3 gap-3 mb-6">
-                {[['stripe','💳 Credit/Debit Card'],['paypal','🅿️ PayPal'],['bank_transfer','🏦 Bank Transfer']].map(([method, label]) => (
-                  <button key={method} onClick={() => setPayMethod(method)} className={`p-3 border-2 rounded-xl text-sm font-medium transition-all ${payMethod === method ? 'border-gold bg-gold-50 text-deep' : 'border-gray-200 hover:border-gold/50'}`}>{label}</button>
-                ))}
+              <h2 className="font-bold text-lg mb-5 flex items-center gap-2">
+                <span className="w-7 h-7 rounded-full bg-gold text-deep flex items-center justify-center text-sm font-bold">2</span>
+                Payment Method
+              </h2>
+
+              {/* Method selector */}
+              <div className="grid grid-cols-2 gap-3 mb-6">
+                {/* Genie card */}
+                <button
+                  onClick={() => setPayMethod('genie')}
+                  className={`p-4 border-2 rounded-xl flex flex-col items-center gap-2 transition-all ${
+                    payMethod === 'genie'
+                      ? 'border-gold bg-amber-50 shadow-md'
+                      : 'border-gray-200 hover:border-gold/40'
+                  }`}
+                >
+                  <img src="/genie-logo.jpg" alt="Dialog Genie" className="h-8 object-contain rounded" />
+                  <span className="text-xs font-semibold text-deep">Visa / Dialog Genie</span>
+                  <span className="text-[10px] text-gray-400">Cards · Genie Wallet · QR</span>
+                </button>
+
+                {/* Bank Transfer card */}
+                <button
+                  onClick={() => setPayMethod('bank_transfer')}
+                  className={`p-4 border-2 rounded-xl flex flex-col items-center gap-2 transition-all ${
+                    payMethod === 'bank_transfer'
+                      ? 'border-gold bg-amber-50 shadow-md'
+                      : 'border-gray-200 hover:border-gold/40'
+                  }`}
+                >
+                  <div className="text-3xl">🏦</div>
+                  <span className="text-xs font-semibold text-deep">Bank Transfer</span>
+                  <span className="text-[10px] text-gray-400">HNB Direct Deposit</span>
+                </button>
               </div>
 
-              {payMethod === 'stripe' && (
-                <div className="bg-cream rounded-xl p-4 text-sm text-gray-500 mb-4">
-                  💳 You'll be redirected to Stripe's secure payment page. All major credit/debit cards accepted.
+              {/* Genie info panel */}
+              {payMethod === 'genie' && (
+                <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 mb-5">
+                  <div className="flex items-center gap-3 mb-3">
+                    <img src="/genie-logo.jpg" alt="Genie" className="h-7 rounded" />
+                    <div>
+                      <p className="text-sm font-bold text-deep">Pay with Dialog Genie</p>
+                      <p className="text-xs text-gray-500">Visa, Mastercard &amp; Genie Wallet accepted</p>
+                    </div>
+                  </div>
+                  <ul className="text-xs text-gray-600 space-y-1">
+                    <li>✅ Secure, encrypted payment hosted by Dialog Genie</li>
+                    <li>✅ Pay with any Visa / Mastercard or Genie Wallet balance</li>
+                    <li>✅ You'll be redirected to Genie's payment page</li>
+                    <li>✅ Your order is confirmed instantly on payment success</li>
+                  </ul>
                 </div>
               )}
 
-              {payMethod === 'paypal' && (
-                <PayPalScriptProvider options={{ 'client-id': import.meta.env.VITE_PAYPAL_CLIENT_ID || 'sb', currency: 'CAD' }}>
-                  <PayPalButtons
-                    style={{ layout: 'vertical', color: 'gold', shape: 'pill' }}
-                    createOrder={async () => {
-                      const { id } = await api.post('payments/paypal/create', { amount: total() })
-                      return id
-                    }}
-                    onApprove={async (data) => {
-                      setLoading(true)
-                      try {
-                        const order = await api.post('orders', createOrderPayload())
-                        await api.post('payments/paypal/capture', { paypalOrderId: data.orderID, orderId: order._id })
-                        clear()
-                        navigate(`/order-success/${order._id}`)
-                        toast.success('Order placed! Payment confirmed 🎉')
-                      } catch { toast.error('Payment capture failed') }
-                      finally { setLoading(false) }
-                    }}
-                    onError={() => toast.error('PayPal error. Try another method.')}
-                  />
-                </PayPalScriptProvider>
-              )}
-
+              {/* Bank Transfer info panel */}
               {payMethod === 'bank_transfer' && (
-                <div className="bg-cream rounded-xl p-4 text-sm space-y-2 mb-4">
-                  <p className="font-semibold">Bank Transfer Details:</p>
-                  <p>Bank: Commercial Bank of Ceylon</p>
-                  <p>Account Name: Kesara Bathik</p>
-                  <p>Account Number: XXXX XXXX XXXX</p>
-                  <p className="text-xs text-gray-400">Please send payment confirmation via WhatsApp after transfer.</p>
+                <div className="rounded-xl border border-blue-100 bg-blue-50 p-4 mb-5">
+                  <p className="text-sm font-bold text-deep mb-3">🏦 HNB Bank Transfer Details</p>
+                  <table className="w-full text-sm">
+                    <tbody className="space-y-1">
+                      {[
+                        ['Bank',           HNB_ACCOUNT.bank],
+                        ['Branch',         HNB_ACCOUNT.branch],
+                        ['Account Number', HNB_ACCOUNT.account],
+                        ['Account Name',   HNB_ACCOUNT.name],
+                        ['Reference',      'Your Name + Order #'],
+                      ].map(([label, value]) => (
+                        <tr key={label}>
+                          <td className="py-1 pr-3 text-gray-500 font-medium w-36">{label}</td>
+                          <td className="py-1 font-semibold text-deep select-all">{value}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <p className="text-xs text-gray-500 mt-3 border-t border-blue-100 pt-3">
+                    📱 After transferring, please send a screenshot of the receipt via
+                    <a href="https://wa.me/94771234567" className="text-green-600 font-semibold ml-1" target="_blank" rel="noopener noreferrer">
+                      WhatsApp
+                    </a>.
+                    Your order will be processed once payment is verified.
+                  </p>
                 </div>
               )}
 
-              {payMethod !== 'paypal' && (
-                <button onClick={handleStripeCheckout} disabled={loading || !address.fullName || !address.address} className="btn-gold w-full py-4 text-base mt-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                  {loading ? 'Processing...' : `Place Order · ${formatAmount(total())}`}
-                </button>
-              )}
-
-              <p className="text-center text-xs text-gray-400 mt-3">🔒 Your payment info is encrypted and secure</p>
+              {/* Place Order button */}
+              <button
+                onClick={handlePlaceOrder}
+                disabled={loading || !addressComplete}
+                className="btn-gold w-full py-4 text-base disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {loading ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                    </svg>
+                    {payMethod === 'genie' ? 'Redirecting to Genie...' : 'Placing order...'}
+                  </>
+                ) : payMethod === 'genie' ? (
+                  <>
+                    <img src="/genie-logo.jpg" alt="" className="h-5 rounded inline" />
+                    Pay {formatAmount(total())} via Genie →
+                  </>
+                ) : (
+                  `Place Order · ${formatAmount(total())}`
+                )}
+              </button>
+              <p className="text-center text-xs text-gray-400 mt-3">
+                🔒 Payments secured by Dialog Genie · All transactions encrypted
+              </p>
             </div>
           </div>
 
-          {/* Order Summary */}
+          {/* ── RIGHT: Order Summary ── */}
           <div>
             <div className="card p-6 sticky top-20">
               <h3 className="font-bold mb-4">Order Summary</h3>
               <div className="space-y-3 mb-4">
                 {items.map(item => (
                   <div key={item.key} className="flex gap-3">
-                    <img src={item.product.images?.[0]?.url || '/placeholder.jpg'} className="w-14 h-14 rounded-lg object-cover" alt={item.product.name} />
+                    <img
+                      src={item.product.images?.[0]?.url || '/logo.png'}
+                      className="w-14 h-14 rounded-lg object-cover flex-shrink-0"
+                      alt={item.product.name}
+                    />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{item.product.name}</p>
-                      {item.variant?.size && <p className="text-xs text-gray-400">Size: {item.variant.size}</p>}
-                      <p className="text-sm font-bold text-gold">{formatAmount(getUnitPrice(item.product, currency, rates))} × {item.quantity}</p>
+                      {item.variant?.size  && <p className="text-xs text-gray-400">Size: {item.variant.size}</p>}
+                      {item.variant?.color && <p className="text-xs text-gray-400">Colour: {item.variant.color}</p>}
+                      <p className="text-sm font-bold text-gold">
+                        {formatAmount(getUnitPrice(item.product, currency, rates))} × {item.quantity}
+                      </p>
                     </div>
                   </div>
                 ))}
               </div>
               <div className="border-t pt-4 space-y-2 text-sm">
-                <div className="flex justify-between text-gray-500"><span>Subtotal</span><span>{formatAmount(subtotal())}</span></div>
-                <div className="flex justify-between text-gray-500"><span>Shipping</span><span>{currency === 'LKR' ? formatAmount(shipping()) : shipping() === 0 ? <span className="text-green-600">FREE 🎉</span> : formatAmount(shipping())}</span></div>
-                <div className="flex justify-between font-bold text-lg border-t pt-2"><span>Total</span><span className="text-gold">{formatAmount(total())}</span></div>
+                <div className="flex justify-between text-gray-500">
+                  <span>Subtotal</span><span>{formatAmount(subtotal())}</span>
+                </div>
+                <div className="flex justify-between text-gray-500">
+                  <span>Shipping</span>
+                  <span>
+                    {shipping() === 0
+                      ? <span className="text-green-600 font-semibold">FREE 🎉</span>
+                      : formatAmount(shipping())
+                    }
+                  </span>
+                </div>
+                <div className="flex justify-between font-bold text-lg border-t pt-2">
+                  <span>Total</span>
+                  <span className="text-gold">{formatAmount(total())}</span>
+                </div>
+              </div>
+
+              {/* Trust badges */}
+              <div className="mt-4 pt-4 border-t flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <img src="/genie-logo.jpg" alt="Genie" className="h-5 rounded" />
+                  <span className="text-xs text-gray-500">Visa / Dialog Genie accepted</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">🏦</span>
+                  <span className="text-xs text-gray-500">HNB Bank Transfer</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">🔒</span>
+                  <span className="text-xs text-gray-500">SSL Encrypted Checkout</span>
+                </div>
               </div>
             </div>
           </div>

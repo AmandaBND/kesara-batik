@@ -42,7 +42,7 @@ const orderSchema = new mongoose.Schema(
     payment: {
       method: {
         type: String,
-        enum: ["stripe", "paypal", "google_pay", "bank_transfer"],
+        enum: ["genie", "bank_transfer"],
         required: true,
       },
       status: {
@@ -50,9 +50,8 @@ const orderSchema = new mongoose.Schema(
         enum: ["pending", "paid", "failed", "refunded", "partial_refund"],
         default: "pending",
       },
-      transactionId: String,
-      paypalOrderId: String,
-      stripePaymentIntentId: String,
+      transactionId: String,   // Genie orderId stored here
+      genieOrderId: String,
       paidAt: Date,
       refundedAt: Date,
       refundAmount: Number,

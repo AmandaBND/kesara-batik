@@ -1,12 +1,14 @@
-// paymentRoutes.js
 const express = require('express');
 const router = express.Router();
-const { createStripeIntent, stripeWebhook, createPaypalOrder, capturePaypalOrder } = require('../controllers/paymentController');
-const { protect, optionalAuth } = require('../middleware/auth');
+const { createGeniePayment, genieWebhook, getGeniePaymentStatus, pingGenie } = require('../controllers/paymentController');
+const { optionalAuth } = require('../middleware/auth');
 
-router.post('/stripe/intent', optionalAuth, createStripeIntent);
-router.post('/stripe/webhook', express.raw({ type: 'application/json' }), stripeWebhook);
-router.post('/paypal/create', optionalAuth, createPaypalOrder);
-router.post('/paypal/capture', optionalAuth, capturePaypalOrder);
+// Dialog Genie
+router.post('/genie/create',          optionalAuth, createGeniePayment);
+// Genie sends GET first to verify the webhook URL is reachable — must return 200
+router.get('/genie/webhook',          (req, res) => res.status(200).json({ status: 'ok', service: 'Kesara Bathik' }));
+router.post('/genie/webhook',         genieWebhook);                  // called by Genie servers (real events)
+router.get('/genie/status/:orderId',  optionalAuth, getGeniePaymentStatus);
+router.get('/genie/ping',             pingGenie);                     // debug — remove after launch
 
 module.exports = router;

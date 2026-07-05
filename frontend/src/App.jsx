@@ -13,6 +13,7 @@ import ProductDetailPage from './pages/shop/ProductDetailPage'
 import CartPage from './pages/shop/CartPage'
 import CheckoutPage from './pages/shop/CheckoutPage'
 import OrderSuccessPage from './pages/shop/OrderSuccessPage'
+import GenieReturnPage from './pages/shop/GenieReturnPage'
 import AccountPage from './pages/shop/AccountPage'
 import OrdersPage from './pages/shop/OrdersPage'
 import WishlistPage from './pages/shop/WishlistPage'
@@ -59,6 +60,7 @@ export default function App() {
         <Route path="cart" element={<CartPage />} />
         <Route path="checkout" element={<CheckoutPage />} />
         <Route path="order-success/:id" element={<OrderSuccessPage />} />
+        <Route path="payment/genie/return" element={<GenieReturnPage />} />
         <Route path="account" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
         <Route path="orders" element={<ProtectedRoute><OrdersPage /></ProtectedRoute>} />
         <Route path="wishlist" element={<WishlistPage />} />
