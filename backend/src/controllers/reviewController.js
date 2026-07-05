@@ -4,7 +4,7 @@ const Order = require('../models/Order');
 const Product = require('../models/Product');
 const mongoose = require('mongoose');
 
-/** Resolve a slug or ObjectId string to a product _id */
+/** Resolve a product slug OR ObjectId to a MongoDB _id */
 async function resolveProductId(slugOrId) {
   if (mongoose.Types.ObjectId.isValid(slugOrId)) return slugOrId;
   const product = await Product.findOne({ slug: slugOrId }).select('_id');
@@ -46,8 +46,8 @@ exports.updateReview = asyncHandler(async (req, res) => {
   const review = await Review.findOne({ _id: req.params.id, user: req.user._id });
   if (!review) { res.status(404); throw new Error('Review not found'); }
   const { rating, title, comment } = req.body;
-  if (rating) review.rating = rating;
-  if (title) review.title = title;
+  if (rating)  review.rating  = rating;
+  if (title)   review.title   = title;
   if (comment) review.comment = comment;
   await review.save();
   const populated = await Review.findById(review._id).populate('user', 'name avatar');
@@ -60,27 +60,30 @@ exports.deleteReview = asyncHandler(async (req, res) => {
   res.json({ message: 'Review deleted' });
 });
 
-exports.adminGetReviews = asyncHandler(async (req, res) => {
-  const { page = 1, limit = 20, approved } = req.query;
-  const filter = {};
-  if (approved !== undefined) filter.isApproved = approved === 'true';
-  const [reviews, total] = await Promise.all([
-    Review.find(filter).populate('user', 'name').populate('product', 'name').sort('-createdAt')
-      .skip((page - 1) * limit).limit(Number(limit)),
-    Review.countDocuments(filter),
-  ]);
-  res.json({ reviews, total, pages: Math.ceil(total / limit) });
-});
-
-exports.adminUpdateReview = asyncHandler(async (req, res) => {
-  const review = await Review.findByIdAndUpdate(req.params.id, req.body, { new: true })
-    .populate('user', 'name').populate('product', 'name');
+// Admin: add a reply to a review
+exports.adminReply = asyncHandler(async (req, res) => {
+  const review = await Review.findByIdAndUpdate(
+    req.params.id,
+    { adminReply: req.body.reply, adminRepliedAt: new Date() },
+    { new: true }
+  ).populate('user', 'name avatar').populate('product', 'name');
   if (!review) { res.status(404); throw new Error('Review not found'); }
   res.json(review);
 });
 
-exports.adminDeleteReview = asyncHandler(async (req, res) => {
-  const review = await Review.findByIdAndDelete(req.params.id);
-  if (!review) { res.status(404); throw new Error('Review not found'); }
-  res.json({ message: 'Review deleted' });
+// Admin: list all reviews with optional approval filter
+exports.getAllReviews = asyncHandler(async (req, res) => {
+  const { page = 1, limit = 20, approved } = req.query;
+  const filter = {};
+  if (approved !== undefined) filter.isApproved = approved === 'true';
+  const [reviews, total] = await Promise.all([
+    Review.find(filter)
+      .populate('user', 'name')
+      .populate('product', 'name')
+      .sort('-createdAt')
+      .skip((page - 1) * limit)
+      .limit(Number(limit)),
+    Review.countDocuments(filter),
+  ]);
+  res.json({ reviews, total, pages: Math.ceil(total / limit) });
 });
