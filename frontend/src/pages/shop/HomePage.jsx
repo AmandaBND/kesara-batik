@@ -14,7 +14,7 @@ import {
 import ProductCard from '../../components/shop/ProductCard'
 import Seo from '../../components/common/Seo'
 import api from '../../utils/api'
-import heroPeacockSaree from '../../assets/home/hero-peacock-saree.webp'
+import heroPeacockSaree from '../../assets/home/hero-peacock-saree1.png'
 import womenCategoryImage from '../../assets/categories/women.png'
 import menCategoryImage from '../../assets/categories/men.png'
 import kidsCategoryImage from '../../assets/categories/kids.png'
