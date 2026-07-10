@@ -18,7 +18,7 @@ import api from '../../utils/api'
 
 import heroPeacockSaree from '../../assets/home/hero-peacock-saree1.png'
 
-import womenCategoryImage from '../../assets/categories/women.jpg'
+import womenCategoryImage from '../../assets/categories/women.jpeg'
 import menCategoryImage from '../../assets/categories/men.jpeg'
 import kidsCategoryImage from '../../assets/categories/kids.jpeg'
 import familyCategoryImage from '../../assets/categories/family.jpeg'
@@ -155,8 +155,14 @@ export default function HomePage() {
       />
 
       {/* HERO SECTION */}
-      <section className="relative isolate flex min-h-[500px] items-center overflow-hidden bg-gradient-to-br from-deep via-deep-brown to-[#3D2B0E] xl:min-h-[540px]">
-        {/* Decorative pattern */}
+      <section
+        className="relative isolate flex min-h-[500px] items-center overflow-hidden xl:min-h-[540px]"
+        style={{
+          background:
+            'linear-gradient(115deg, #21140C 0%, #2B1A0F 48%, #3D2B0E 100%)',
+        }}
+      >
+        {/* Decorative background pattern */}
         <div
           className="pointer-events-none absolute inset-0 z-0 opacity-5"
           style={{
@@ -166,29 +172,52 @@ export default function HomePage() {
         />
 
         {/* Peacock saree image */}
-        <div className="pointer-events-none absolute inset-y-0 right-0 z-[1] hidden w-[64%] select-none overflow-hidden lg:block xl:w-[66%]">
-          <img
-            src={heroPeacockSaree}
-            alt=""
-            aria-hidden="true"
-            className="absolute inset-0 h-full w-full scale-[1.16] object-cover opacity-[0.88]"
-            style={{
-              objectPosition: '48% 43%',
-            }}
-          />
-
-          {/* Left-side fade */}
+        <div className="pointer-events-none absolute inset-y-0 right-[-2%] z-[1] hidden w-[74%] select-none overflow-hidden lg:block xl:w-[72%]">
+          {/* Image layer with transparent left-edge mask */}
           <div
             className="absolute inset-0"
             style={{
-              background:
-                'linear-gradient(90deg, #2B1A0F 0%, rgba(43,26,15,0.90) 8%, rgba(43,26,15,0.64) 20%, rgba(43,26,15,0.28) 36%, rgba(43,26,15,0.05) 55%, transparent 72%)',
+              WebkitMaskImage:
+                'linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.08) 6%, rgba(0,0,0,0.35) 15%, rgba(0,0,0,0.75) 28%, #000 43%, #000 100%)',
+              maskImage:
+                'linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.08) 6%, rgba(0,0,0,0.35) 15%, rgba(0,0,0,0.75) 28%, #000 43%, #000 100%)',
             }}
-          />
+          >
+            <img
+              src={heroPeacockSaree}
+              alt=""
+              aria-hidden="true"
+              className="absolute inset-0 h-full w-full scale-[1.16] object-cover opacity-[0.9]"
+              style={{
+                objectPosition: '48% 43%',
+              }}
+            />
 
-          {/* Light dark overlay */}
-          <div className="absolute inset-0 bg-black/5" />
+            {/* Subtle brown colour grading */}
+            <div className="absolute inset-0 bg-[#2B1A0F]/10 mix-blend-multiply" />
+
+            {/* Gentle overall darkness */}
+            <div className="absolute inset-0 bg-black/[0.03]" />
+          </div>
         </div>
+
+        {/* Wide brown transition over the image */}
+        <div
+          className="pointer-events-none absolute inset-y-0 left-0 z-[2] hidden w-[64%] lg:block"
+          style={{
+            background:
+              'linear-gradient(90deg, #21140C 0%, #24160D 42%, rgba(43,26,15,0.98) 58%, rgba(43,26,15,0.82) 69%, rgba(43,26,15,0.48) 81%, rgba(43,26,15,0.16) 92%, transparent 100%)',
+          }}
+        />
+
+        {/* Soft radial transition around image starting area */}
+        <div
+          className="pointer-events-none absolute inset-y-0 left-[28%] z-[3] hidden w-[36%] lg:block"
+          style={{
+            background:
+              'radial-gradient(ellipse at left center, rgba(43,26,15,0.72) 0%, rgba(43,26,15,0.45) 35%, rgba(43,26,15,0.16) 67%, transparent 100%)',
+          }}
+        />
 
         {/* Mobile background decoration */}
         <div className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-r from-transparent to-gold/5 lg:hidden" />
@@ -196,7 +225,7 @@ export default function HomePage() {
         {/* Hero content */}
         <div className="relative z-10 mx-auto w-full max-w-7xl px-4 py-10 sm:px-8 lg:px-8 lg:py-8">
           <div className="grid items-center gap-8 lg:grid-cols-[0.92fr_1.08fr] xl:gap-10">
-            {/* Left content */}
+            {/* Left hero content */}
             <motion.div
               initial={{
                 opacity: 0,
