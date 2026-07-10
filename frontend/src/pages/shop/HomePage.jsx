@@ -184,7 +184,14 @@ export default function HomePage() {
                 ))}
               </div>
             </motion.div>
-            <div className="absolute inset-0 right-[-4.5rem] w-[115%] pointer-events-none select-none overflow-hidden">
+
+            <motion.div
+              initial={{ opacity: 0, x: 40 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.7, delay: 0.2 }}
+              className="hidden lg:block relative min-h-[520px]"
+            >
+              <div className="absolute inset-0 right-[-4.5rem] w-[115%] pointer-events-none select-none overflow-hidden">
                 <div
                   className="absolute inset-0 bg-no-repeat bg-right-top opacity-90"
                   style={{
@@ -195,14 +202,6 @@ export default function HomePage() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-l from-transparent via-transparent to-[#2B1A0F] opacity-80" />
               </div>
-
-            <motion.div
-              initial={{ opacity: 0, x: 40 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.7, delay: 0.2 }}
-              className="hidden lg:block relative min-h-[520px]"
-            >
-              
 
               <div className="relative z-10 grid grid-cols-2 gap-4 max-w-[560px] ml-auto pt-10">
                 {HERO_HIGHLIGHTS.map(({ title, description, Icon }) => (
