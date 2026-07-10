@@ -2,7 +2,8 @@ import { Outlet, Link, useNavigate } from 'react-router-dom'
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useCartStore, useAuthStore, useWishlistStore, useCurrencyStore } from '../../store'
-import { FiShoppingCart, FiHeart, FiUser, FiSearch, FiMenu, FiX, FiChevronDown, FiTrash2, FiPlus, FiMinus } from 'react-icons/fi'
+import { FiShoppingCart, FiHeart, FiUser, FiSearch, FiMenu, FiX, FiChevronDown, FiTrash2, FiPlus, FiMinus, FiMail, FiMapPin } from 'react-icons/fi'
+import { FaWhatsapp, FaFacebook, FaInstagram, FaTiktok, FaCcVisa, FaCcMastercard, FaUniversity, FaWandMagicSparkles } from 'react-icons/fa6'
 import api from '../../utils/api'
 import { detectCountry } from '../../utils/geolocation'
 import { getUnitPrice } from '../../utils/pricing'
@@ -205,7 +206,21 @@ export default function ShopLayout() {
             </div>
             <p className="text-sm leading-relaxed text-gray-500">Authentic handcrafted Sri Lankan Batik fashion. Shipped from Colombo to Canada, USA, UAE and worldwide.</p>
             <div className="flex gap-3 mt-4">
-              {['f','📸','💬'].map((s,i) => <a key={i} href="#" className="w-9 h-9 border border-gold/30 rounded-full flex items-center justify-center text-gold hover:bg-gold hover:text-deep transition-colors text-sm">{s}</a>)}
+              {[
+                { icon: FaFacebook, href: '#', label: 'Facebook' },
+                { icon: FaInstagram, href: '#', label: 'Instagram' },
+                { icon: FaWhatsapp, href: 'https://wa.me/94774881013', label: 'WhatsApp' },
+                { icon: FaTiktok, href: '#', label: 'TikTok' },
+              ].map(({ icon: Icon, href, label }, i) => (
+                <a
+                  key={i}
+                  href={href}
+                  title={label}
+                  className="w-9 h-9 border border-gold/30 rounded-full flex items-center justify-center text-gold hover:bg-gold hover:text-deep transition-colors text-sm"
+                >
+                  <Icon className="text-lg" />
+                </a>
+              ))}
             </div>
           </div>
           {[
@@ -222,18 +237,39 @@ export default function ShopLayout() {
           <div>
             <h4 className="text-gold text-xs font-bold uppercase tracking-widest mb-4">Contact</h4>
             <div className="space-y-3 text-sm">
-              <p>📱 WhatsApp: +94 77 488 1013</p>
-              <p>✉️ kesarabatik.info@gmail.com</p>
-              <p>📍 Colombo, Sri Lanka 🇱🇰</p>
+              <a href="https://wa.me/94774881013" className="flex items-center gap-2 hover:text-gold transition-colors">
+                <FaWhatsapp className="text-lg" />
+                <span>+94 77 488 1013</span>
+              </a>
+              <a href="mailto:kesarabatik.info@gmail.com" className="flex items-center gap-2 hover:text-gold transition-colors">
+                <FiMail className="text-lg" />
+                <span>kesarabatik.info@gmail.com</span>
+              </a>
+              <div className="flex items-center gap-2">
+                <FiMapPin className="text-lg" />
+                <span>Colombo, Sri Lanka 🇱🇰</span>
+              </div>
               <p className="text-xs text-gray-600 mt-4">Shipping to 🇨🇦 Canada · 🇺🇸 USA · 🇦🇪 UAE · 🇬🇧 UK · 🇯🇵 Japan · 🇰🇷 Korea & more</p>
             </div>
           </div>
         </div>
         <div className="border-t border-white/10 py-6 px-8 flex flex-wrap items-center justify-between gap-4 max-w-7xl mx-auto">
           <p className="text-xs text-gray-600">© 2024 Kesara Bathik. All rights reserved.</p>
-          <div className="flex gap-2">
-            {['💳 Visa','💳 Mastercard','🔌 Dialog Genie','🏦 Bank Wire'].map(p => (
-              <span key={p} className="text-xs px-2 py-1 border border-white/10 rounded text-gray-500">{p}</span>
+          <div className="flex gap-3 flex-wrap">
+            {[
+              { icon: FaCcVisa, label: 'Visa', color: '#1A1F71' },
+              { icon: FaCcMastercard, label: 'Mastercard', color: '#EB001B' },
+              { icon: FaWandMagicSparkles, label: 'Dialog Genie', color: '#C8923A' },
+              { icon: FaUniversity, label: 'Bank Wire', color: '#C8923A' },
+            ].map(({ icon: Icon, label, color }, i) => (
+              <div
+                key={i}
+                title={label}
+                className="text-xs px-3 py-1.5 border border-white/10 rounded flex items-center gap-1.5 text-gray-400 hover:text-gold hover:border-gold/30 transition-colors cursor-help"
+              >
+                <Icon style={{ color }} className="text-sm" />
+                <span className="hidden sm:inline">{label}</span>
+              </div>
             ))}
           </div>
         </div>
