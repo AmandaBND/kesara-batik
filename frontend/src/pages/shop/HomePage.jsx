@@ -380,9 +380,9 @@ export default function HomePage() {
             >
               <Link
                 to={category.href}
-                className="group block rounded-[1.75rem] border border-gold/15 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+                className="group block overflow-hidden rounded-[1.75rem] border border-gold/15 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
               >
-                <div className="relative aspect-[4/5]">
+                <div className="relative aspect-[4/5] overflow-hidden">
                   <img
                     src={category.image}
                     alt={`${category.name} batik collection`}
