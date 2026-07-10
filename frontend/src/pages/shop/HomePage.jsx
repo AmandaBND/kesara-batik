@@ -159,7 +159,7 @@ export default function HomePage() {
         className="relative isolate flex min-h-[500px] items-center overflow-hidden xl:min-h-[540px]"
         style={{
           background:
-            'linear-gradient(115deg, #21140C 0%, #2B1A0F 48%, #3D2B0E 100%)',
+            'linear-gradient(115deg, #21140C 0%, #22150D 48%, #3D2B0E 100%)',
         }}
       >
         {/* Decorative background pattern */}
@@ -194,7 +194,7 @@ export default function HomePage() {
             />
 
             {/* Subtle brown colour grading */}
-            <div className="absolute inset-0 bg-[#2B1A0F]/10 mix-blend-multiply" />
+            <div className="absolute inset-0 bg-[#22150D]/10 mix-blend-multiply" />
 
             {/* Gentle overall darkness */}
             <div className="absolute inset-0 bg-black/[0.03]" />
@@ -206,7 +206,7 @@ export default function HomePage() {
           className="pointer-events-none absolute inset-y-0 left-0 z-[2] hidden w-[64%] lg:block"
           style={{
             background:
-              'linear-gradient(90deg, #21140C 0%, #24160D 42%, rgba(43,26,15,0.98) 58%, rgba(43,26,15,0.82) 69%, rgba(43,26,15,0.48) 81%, rgba(43,26,15,0.16) 92%, transparent 100%)',
+              'linear-gradient(90deg, #21140C 0%, #24160D 42%, rgba(34,21,13,0.98) 58%, rgba(34,21,13,0.82) 69%, rgba(34,21,13,0.48) 81%, rgba(34,21,13,0.16) 92%, transparent 100%)',
           }}
         />
 
@@ -215,7 +215,7 @@ export default function HomePage() {
           className="pointer-events-none absolute inset-y-0 left-[28%] z-[3] hidden w-[36%] lg:block"
           style={{
             background:
-              'radial-gradient(ellipse at left center, rgba(43,26,15,0.72) 0%, rgba(43,26,15,0.45) 35%, rgba(43,26,15,0.16) 67%, transparent 100%)',
+              'radial-gradient(ellipse at left center, rgba(34,21,13,0.72) 0%, rgba(34,21,13,0.45) 35%, rgba(34,21,13,0.16) 67%, transparent 100%)',
           }}
         />
 
