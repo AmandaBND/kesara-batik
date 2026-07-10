@@ -155,7 +155,7 @@ export default function HomePage() {
       />
 
       {/* HERO SECTION */}
-      <section className="relative isolate flex min-h-[560px] items-center overflow-hidden bg-gradient-to-br from-deep via-deep-brown to-[#3D2B0E] xl:min-h-[600px]">
+      <section className="relative isolate flex min-h-[500px] items-center overflow-hidden bg-gradient-to-br from-deep via-deep-brown to-[#3D2B0E] xl:min-h-[540px]">
         {/* Decorative pattern */}
         <div
           className="pointer-events-none absolute inset-0 z-0 opacity-5"
@@ -194,8 +194,8 @@ export default function HomePage() {
         <div className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-r from-transparent to-gold/5 lg:hidden" />
 
         {/* Hero content */}
-        <div className="relative z-10 mx-auto w-full max-w-7xl px-4 py-16 sm:px-8 lg:px-8 lg:py-12">
-          <div className="grid items-center gap-10 lg:grid-cols-[0.92fr_1.08fr] xl:gap-12">
+        <div className="relative z-10 mx-auto w-full max-w-7xl px-4 py-10 sm:px-8 lg:px-8 lg:py-8">
+          <div className="grid items-center gap-8 lg:grid-cols-[0.92fr_1.08fr] xl:gap-10">
             {/* Left content */}
             <motion.div
               initial={{
@@ -211,11 +211,11 @@ export default function HomePage() {
               }}
               className="relative z-20"
             >
-              <p className="mb-4 text-sm font-semibold uppercase tracking-widest text-gold">
+              <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-gold">
                 Authentic Sri Lankan Craftsmanship
               </p>
 
-              <h1 className="mb-6 font-display text-5xl font-bold leading-tight text-white lg:text-6xl">
+              <h1 className="mb-4 font-display text-5xl font-bold leading-tight text-white lg:text-6xl">
                 කේසර
                 <br />
 
@@ -230,7 +230,7 @@ export default function HomePage() {
                 </span>
               </h1>
 
-              <p className="mb-8 max-w-lg text-lg leading-relaxed text-gray-400">
+              <p className="mb-6 max-w-lg text-lg leading-relaxed text-gray-400">
                 Handcrafted in the heart of Sri Lanka. Every piece carries
                 centuries of artisan tradition — shipped to Canada, USA, UAE
                 and worldwide.
@@ -252,7 +252,7 @@ export default function HomePage() {
                 </Link>
               </div>
 
-              <div className="mt-10 flex flex-wrap gap-7 border-t border-white/10 pt-8 sm:gap-8">
+              <div className="mt-7 flex flex-wrap gap-7 border-t border-white/10 pt-5 sm:gap-8">
                 {[
                   ['500+', 'Products'],
                   ['1200+', 'Happy Customers'],
@@ -285,7 +285,7 @@ export default function HomePage() {
                 duration: 0.7,
                 delay: 0.2,
               }}
-              className="relative z-20 hidden min-h-[470px] items-center lg:flex"
+              className="relative z-20 hidden min-h-[410px] items-center lg:flex"
             >
               <div className="ml-auto grid w-full max-w-[500px] grid-cols-2 gap-3 xl:max-w-[520px] xl:gap-4">
                 {HERO_HIGHLIGHTS.map(
@@ -319,8 +319,8 @@ export default function HomePage() {
       </section>
 
       {/* SHOP BY CATEGORY */}
-      <section className="section">
-        <div className="mb-8 flex items-baseline justify-between">
+      <section className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-8 lg:px-8 lg:py-10">
+        <div className="mb-5 flex items-baseline justify-between">
           <h2 className="font-display text-3xl font-bold text-deep">
             Shop by{' '}
             <span className="text-gold">
@@ -379,9 +379,9 @@ export default function HomePage() {
       </section>
 
       {/* NEW ARRIVALS */}
-      <section className="bg-gold-50 py-16">
-        <div className="section">
-          <div className="mb-8 flex items-baseline justify-between">
+      <section className="bg-gold-50">
+        <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-8 lg:px-8 lg:py-10">
+          <div className="mb-5 flex items-baseline justify-between">
             <h2 className="font-display text-3xl font-bold text-deep">
               New{' '}
               <span className="text-gold">
@@ -417,8 +417,8 @@ export default function HomePage() {
       </section>
 
       {/* FEATURED PRODUCTS */}
-      <section className="section">
-        <div className="mb-8 flex items-baseline justify-between">
+      <section className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-8 lg:px-8 lg:py-10">
+        <div className="mb-5 flex items-baseline justify-between">
           <h2 className="font-display text-3xl font-bold text-deep">
             Featured{' '}
             <span className="text-gold">
@@ -453,7 +453,7 @@ export default function HomePage() {
       </section>
 
       {/* TRUST BADGES */}
-      <section className="bg-deep py-12">
+      <section className="bg-deep py-10">
         <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 px-4 sm:grid-cols-2 sm:px-8 lg:grid-cols-4 lg:gap-8">
           {TRUST_BADGES.map(
             ({
@@ -485,8 +485,8 @@ export default function HomePage() {
       </section>
 
       {/* TESTIMONIALS */}
-      <section className="section">
-        <h2 className="mb-10 text-center font-display text-3xl font-bold text-deep">
+      <section className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-8 lg:px-8">
+        <h2 className="mb-7 text-center font-display text-3xl font-bold text-deep">
           Customer{' '}
           <span className="text-gold">
             Love
@@ -563,7 +563,7 @@ function ProductGridSkeleton() {
 
 function EmptyProductMessage({ message }) {
   return (
-    <div className="col-span-full rounded-2xl border border-dashed border-gold/30 bg-gold-50 px-6 py-12 text-center">
+    <div className="col-span-full rounded-2xl border border-dashed border-gold/30 bg-gold-50 px-6 py-10 text-center">
       <p className="text-sm text-gray-500">
         {message}
       </p>
