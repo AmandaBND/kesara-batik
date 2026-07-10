@@ -1,7 +1,7 @@
 // AdminOrders.jsx
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { FiSearch, FiFilter } from 'react-icons/fi'
+import { FiSearch, FiFilter, FiTrash2 } from 'react-icons/fi'
 import api from '../../utils/api'
 
 const STATUS_COLORS = { pending:'bg-yellow-100 text-yellow-700', confirmed:'bg-blue-100 text-blue-700', processing:'bg-purple-100 text-purple-700', shipped:'bg-indigo-100 text-indigo-700', delivered:'bg-green-100 text-green-700', cancelled:'bg-red-100 text-red-600', refunded:'bg-gray-100 text-gray-600' }
@@ -14,6 +14,7 @@ export default function AdminOrders() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState('')
+  const [deletingId, setDeletingId] = useState('')
 
   const fetch = async () => {
     setLoading(true)
@@ -27,6 +28,17 @@ export default function AdminOrders() {
   }
 
   useEffect(() => { fetch() }, [page, search, status])
+
+  const handleDelete = async (orderId) => {
+    if (!window.confirm('Delete this order and restore its stock?')) return
+    try {
+      setDeletingId(orderId)
+      await api.delete(`orders/${orderId}`)
+      await fetch()
+    } finally {
+      setDeletingId('')
+    }
+  }
 
   return (
     <div>
@@ -54,7 +66,16 @@ export default function AdminOrders() {
                 <td className="px-4 py-3 font-bold">CA${order.pricing?.total?.toFixed(2)}</td>
                 <td className="px-4 py-3"><span className={`text-xs px-2 py-1 rounded-full font-medium capitalize ${STATUS_COLORS[order.status] || 'bg-gray-100 text-gray-600'}`}>{order.status}</span></td>
                 <td className="px-4 py-3"><span className={`text-xs px-2 py-1 rounded-full font-medium capitalize ${order.payment?.status==='paid'?'bg-green-100 text-green-700':order.payment?.status==='refunded'?'bg-gray-100 text-gray-600':'bg-yellow-100 text-yellow-700'}`}>{order.payment?.status}</span></td>
-                <td className="px-4 py-3"><Link to={`/admin/orders/${order._id}`} className="text-blue-500 hover:text-blue-700 text-xs font-medium">View →</Link></td>
+                <td className="px-4 py-3 flex items-center gap-2">
+                  <Link to={`/admin/orders/${order._id}`} className="text-blue-500 hover:text-blue-700 text-xs font-medium">View →</Link>
+                  <button
+                    onClick={() => handleDelete(order._id)}
+                    disabled={deletingId === order._id}
+                    className="inline-flex items-center gap-1 text-xs font-medium text-red-600 hover:text-red-700 disabled:opacity-60"
+                  >
+                    <FiTrash2 size={13} /> {deletingId === order._id ? 'Deleting…' : 'Delete'}
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>

@@ -6,6 +6,7 @@ const {
   getProductUnitPrice,
   buildOrderPricing,
 } = require('../src/utils/orderPricing');
+const { applyStockChangeForOrderItem } = require('../src/utils/stock');
 
 test('Genie amount converts LKR 8450.00 to 845000 minor units', () => {
   assert.equal(toMinorUnits(8450, 2), 845000);
@@ -37,4 +38,28 @@ test('server pricing produces the expected LKR total', () => {
     total: 8450,
     currency: 'LKR',
   });
+});
+
+test('stock is reduced when an order item is applied as a payment-success change', () => {
+  const product = { stockCount: 10, soldCount: 2, variants: [] };
+  applyStockChangeForOrderItem(product, { quantity: 3 }, { decrement: true });
+
+  assert.equal(product.stockCount, 7);
+  assert.equal(product.soldCount, 5);
+});
+
+test('stock is not reduced for a non-payment-success change', () => {
+  const product = { stockCount: 10, soldCount: 2, variants: [] };
+  applyStockChangeForOrderItem(product, { quantity: 3 }, { decrement: false });
+
+  assert.equal(product.stockCount, 10);
+  assert.equal(product.soldCount, 2);
+});
+
+test('stock is restored when an order item is removed from inventory', () => {
+  const product = { stockCount: 7, soldCount: 5, variants: [] };
+  applyStockChangeForOrderItem(product, { quantity: 3 }, { restore: true });
+
+  assert.equal(product.stockCount, 10);
+  assert.equal(product.soldCount, 2);
 });

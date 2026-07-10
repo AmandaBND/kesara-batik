@@ -1,7 +1,7 @@
 const asyncHandler = require('express-async-handler');
 const Order = require('../models/Order');
 const Product = require('../models/Product');
-const { findVariant, getAvailableStock } = require('../utils/stock');
+const { findVariant, getAvailableStock, applyStockChangeForOrderItem } = require('../utils/stock');
 const { sendOrderInvoiceEmails, sendShippingUpdateEmail } = require('../services/emailService');
 const { getExchangeRates, DEFAULT_RATES } = require('../services/exchangeRateService');
 const {
@@ -140,26 +140,6 @@ exports.createOrder = asyncHandler(async (req, res) => {
     statusHistory: [{ status: 'pending', note: 'Order placed' }],
   });
 
-  for (const item of enrichedItems) {
-    const product = productCache.get(item.product.toString());
-    if (product.variants?.length) {
-      const idx = product.variants.findIndex(v =>
-        (v.size || '') === (item.variant?.size || '') &&
-        (v.color || '') === (item.variant?.color || '')
-      );
-      if (idx >= 0) {
-        product.variants[idx].stock = Math.max(0, (product.variants[idx].stock || 0) - item.quantity);
-        product.stockCount = product.variants.reduce((sum, v) => sum + (v.stock || 0), 0);
-        product.soldCount = (product.soldCount || 0) + item.quantity;
-        await product.save();
-      }
-    } else {
-      await Product.findByIdAndUpdate(item.product, {
-        $inc: { stockCount: -item.quantity, soldCount: item.quantity },
-      });
-    }
-  }
-
   const populated = await Order.findById(order._id).populate('user', 'name email');
   res.status(201).json(populated);
 
@@ -240,4 +220,20 @@ exports.processRefund = asyncHandler(async (req, res) => {
 
   await order.save();
   res.json({ message: 'Refund processed', order });
+});
+
+// DELETE /api/orders/:id
+exports.deleteOrder = asyncHandler(async (req, res) => {
+  const order = await Order.findById(req.params.id);
+  if (!order) return res.status(404).json({ message: 'Order not found' });
+
+  for (const item of order.items || []) {
+    const product = await Product.findById(item.product);
+    if (!product) continue;
+    applyStockChangeForOrderItem(product, item, { restore: true });
+    await product.save();
+  }
+
+  await Order.findByIdAndDelete(req.params.id);
+  res.json({ message: 'Order deleted and stock restored' });
 });

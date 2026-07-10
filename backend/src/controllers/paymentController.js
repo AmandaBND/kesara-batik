@@ -1,7 +1,9 @@
 const crypto = require('crypto');
 const asyncHandler = require('express-async-handler');
 const Order = require('../models/Order');
+const Product = require('../models/Product');
 const { toMinorUnits } = require('../utils/money');
+const { applyStockChangeForOrderItem } = require('../utils/stock');
 
 // ═══════════════════════════════════════════════════════════
 //  DIALOG GENIE BUSINESS — Transaction API V2
@@ -201,7 +203,17 @@ async function updateOrderFromGenieStatus(order, transactionData) {
       'payment.genieOrderId': transactionId,
       status: 'confirmed',
       $push: { statusHistory: { status: 'confirmed', note: `Payment confirmed via Dialog Genie (${status})` } },
-    }, { new: true }).select('status payment orderNumber');
+    }, { new: true }).select('status payment orderNumber items');
+
+    if (updated?.items?.length) {
+      for (const item of updated.items) {
+        const product = await Product.findById(item.product);
+        if (!product) continue;
+        applyStockChangeForOrderItem(product, item, { decrement: true });
+        await product.save();
+      }
+    }
+
     return updated;
   }
 
