@@ -7,6 +7,7 @@ const {
   buildOrderPricing,
 } = require('../src/utils/orderPricing');
 const { applyStockChangeForOrderItem } = require('../src/utils/stock');
+const { canCancelOrder } = require('../src/utils/cancellation');
 
 test('Genie amount converts LKR 8450.00 to 845000 minor units', () => {
   assert.equal(toMinorUnits(8450, 2), 845000);
@@ -62,4 +63,18 @@ test('stock is restored when an order item is removed from inventory', () => {
 
   assert.equal(product.stockCount, 10);
   assert.equal(product.soldCount, 2);
+});
+
+test('orders can be cancelled within the first 24 hours', () => {
+  const now = new Date('2026-07-10T12:00:00.000Z');
+  const order = { createdAt: new Date('2026-07-09T15:00:00.000Z') };
+
+  assert.equal(canCancelOrder(order, now), true);
+});
+
+test('orders cannot be cancelled after the 24-hour window', () => {
+  const now = new Date('2026-07-10T12:00:00.000Z');
+  const order = { createdAt: new Date('2026-07-08T12:00:00.000Z') };
+
+  assert.equal(canCancelOrder(order, now), false);
 });

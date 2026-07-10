@@ -33,6 +33,8 @@ import AdminOrderDetail from './pages/admin/AdminOrderDetail'
 import AdminUsers from './pages/admin/AdminUsers'
 import AdminReviews from './pages/admin/AdminReviews'
 import AdminReports from './pages/admin/AdminReports'
+import AdminRefunds from './pages/admin/AdminRefunds'
+import CancelOrderPage from './pages/shop/CancelOrderPage'
 
 function AdminRoute({ children }) {
   const { user } = useAuthStore()
@@ -63,6 +65,7 @@ export default function App() {
         <Route path="payment/genie/return" element={<GenieReturnPage />} />
         <Route path="account" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
         <Route path="orders" element={<ProtectedRoute><OrdersPage /></ProtectedRoute>} />
+        <Route path="orders/:id/cancel" element={<ProtectedRoute><CancelOrderPage /></ProtectedRoute>} />
         <Route path="wishlist" element={<WishlistPage />} />
         <Route path="login" element={<LoginPage />} />
         <Route path="register" element={<RegisterPage />} />
@@ -88,6 +91,7 @@ export default function App() {
         <Route path="users" element={<AdminUsers />} />
         <Route path="reviews" element={<AdminReviews />} />
         <Route path="reports" element={<AdminReports />} />
+        <Route path="refunds" element={<AdminRefunds />} />
       </Route>
     </Routes>
     </>

@@ -2,7 +2,9 @@ const asyncHandler = require('express-async-handler');
 const Order = require('../models/Order');
 const Product = require('../models/Product');
 const { findVariant, getAvailableStock, applyStockChangeForOrderItem } = require('../utils/stock');
+const { canCancelOrder } = require('../utils/cancellation');
 const { sendOrderInvoiceEmails, sendShippingUpdateEmail } = require('../services/emailService');
+const RefundRequest = require('../models/RefundRequest');
 const { getExchangeRates, DEFAULT_RATES } = require('../services/exchangeRateService');
 const {
   normalizeCurrency,
@@ -236,4 +238,60 @@ exports.deleteOrder = asyncHandler(async (req, res) => {
 
   await Order.findByIdAndDelete(req.params.id);
   res.json({ message: 'Order deleted and stock restored' });
+});
+
+exports.requestCancelOrder = asyncHandler(async (req, res) => {
+  const order = await Order.findById(req.params.id);
+  if (!order) return res.status(404).json({ message: 'Order not found' });
+
+  if (!canCancelOrder(order, new Date())) {
+    return res.status(400).json({ message: 'Sorry, an order can cancel only within 1 day from order date.' });
+  }
+
+  const { reason, accountNumber, bankName, accountHolderName, branch, notes } = req.body;
+  const refundRequest = await RefundRequest.create({
+    order: order._id,
+    user: req.user?._id,
+    customerName: req.user?.name || order.shippingAddress?.fullName || 'Customer',
+    customerEmail: req.user?.email || order.shippingAddress?.email || '',
+    amount: order.pricing?.total || 0,
+    currency: order.pricing?.currency || 'CAD',
+    reason,
+    accountNumber,
+    bankName,
+    accountHolderName,
+    branch,
+    notes,
+    status: 'pending',
+  });
+
+  res.status(201).json(refundRequest);
+});
+
+exports.getRefundRequests = asyncHandler(async (req, res) => {
+  const refunds = await RefundRequest.find().sort('-createdAt').populate('order', 'orderNumber createdAt pricing shippingAddress user');
+  res.json(refunds);
+});
+
+exports.updateRefundRequest = asyncHandler(async (req, res) => {
+  const refund = await RefundRequest.findById(req.params.id);
+  if (!refund) return res.status(404).json({ message: 'Refund request not found' });
+
+  const { status, notes } = req.body;
+  refund.status = status;
+  if (notes !== undefined) refund.notes = notes;
+  if (status === 'paid') {
+    const order = await Order.findById(refund.order);
+    if (order?.items?.length) {
+      for (const item of order.items) {
+        const product = await Product.findById(item.product);
+        if (!product) continue;
+        applyStockChangeForOrderItem(product, item, { restore: true });
+        await product.save();
+      }
+    }
+  }
+
+  await refund.save();
+  res.json(refund);
 });

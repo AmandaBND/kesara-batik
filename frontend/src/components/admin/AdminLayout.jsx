@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { useAuthStore } from '../../store'
 import {
   FiGrid, FiPackage, FiShoppingBag, FiUsers, FiStar,
-  FiBarChart2, FiMenu, FiX, FiLogOut, FiHome, FiChevronRight
+  FiBarChart2, FiMenu, FiX, FiLogOut, FiHome, FiChevronRight, FiRepeat
 } from 'react-icons/fi'
 
 const NAV = [
@@ -13,6 +13,7 @@ const NAV = [
   { to: '/admin/users', icon: FiUsers, label: 'Users' },
   { to: '/admin/reviews', icon: FiStar, label: 'Reviews' },
   { to: '/admin/reports', icon: FiBarChart2, label: 'Reports & Finance' },
+  { to: '/admin/refunds', icon: FiRepeat, label: 'Refunds' },
 ]
 
 export default function AdminLayout() {

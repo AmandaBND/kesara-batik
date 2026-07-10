@@ -49,6 +49,11 @@ export default function OrdersPage() {
                     <span className="font-bold text-gold">{formatCurrencyAmount(order.pricing.total, order.pricing.currency)}</span>
                   </div>
                 </div>
+                <div className="flex flex-wrap gap-2 mb-4">
+                  <Link to={`/orders/${order._id}/cancel`} className="btn-gold text-sm">Cancel Order</Link>
+                </div>
+                <div className="flex gap-3 overflow-x-auto pb-1">
+                </div>
                 <div className="flex gap-3 overflow-x-auto pb-1">
                   {order.items.map((item, i) => (
                     <div key={i} className="shrink-0 flex items-center gap-2 bg-cream rounded-lg px-3 py-2">
