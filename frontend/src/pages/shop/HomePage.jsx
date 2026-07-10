@@ -18,10 +18,10 @@ import api from '../../utils/api'
 
 import heroPeacockSaree from '../../assets/home/hero-peacock-saree1.png'
 
-import womenCategoryImage from '../../assets/categories/women.png'
-import menCategoryImage from '../../assets/categories/men.png'
-import kidsCategoryImage from '../../assets/categories/kids.png'
-import familyCategoryImage from '../../assets/categories/family.png'
+import womenCategoryImage from '../../assets/categories/women.jpg'
+import menCategoryImage from '../../assets/categories/men.jpeg'
+import kidsCategoryImage from '../../assets/categories/kids.jpeg'
+import familyCategoryImage from '../../assets/categories/family.jpeg'
 import accessoriesCategoryImage from '../../assets/categories/accessories.png'
 
 const CATEGORIES = [
