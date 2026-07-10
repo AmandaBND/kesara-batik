@@ -27,6 +27,7 @@ export default function CheckoutPage() {
   const genieAvailable = isFromSriLanka && currency === 'LKR'
   const [payMethod, setPayMethod] = useState(() => genieAvailable ? 'genie' : 'bank_transfer')
   const [loading,   setLoading]   = useState(false)
+  const [validationError, setValidationError] = useState('')
   const [address,   setAddress]   = useState({
     fullName:   user?.name  || '',
     email:      user?.email || '',
@@ -39,6 +40,46 @@ export default function CheckoutPage() {
   })
 
   const addressComplete = address.fullName && address.email && address.address && address.city && address.country
+
+  const validateAddress = () => {
+    const fullName = address.fullName.trim()
+    const email = address.email.trim()
+    const phone = address.phone.trim()
+    const postalCode = address.postalCode.trim()
+    const city = address.city.trim()
+    const state = address.state.trim()
+    const street = address.address.trim()
+
+    if (!/^[A-Za-z\s]+$/.test(fullName)) {
+      return 'Full Name can only contain letters and spaces.'
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return 'Email should be in a valid format like name@example.com.'
+    }
+
+    if (phone && !/^\d+$/.test(phone)) {
+      return 'Phone number should contain only numbers.'
+    }
+
+    if (!street) {
+      return 'Street Address is required.'
+    }
+
+    if (!/^[A-Za-z\s]+$/.test(city)) {
+      return 'City can only contain letters and spaces.'
+    }
+
+    if (state && !/^[A-Za-z\s]+$/.test(state)) {
+      return 'State / Province can only contain letters and spaces.'
+    }
+
+    if (postalCode && !/^\d+$/.test(postalCode)) {
+      return 'Postal Code should contain only numbers.'
+    }
+
+    return ''
+  }
 
   // Never convert an overseas price into the separate Sri Lankan price list.
   // Genie is shown only when IP-based currency detection has locked checkout to LKR.
@@ -78,6 +119,13 @@ export default function CheckoutPage() {
   const handleGenieCheckout = async () => {
     if (!genieAvailable) { toast.error('Dialog Genie is available only for Sri Lankan LKR checkout'); return }
     if (!addressComplete) { toast.error('Please complete your shipping address'); return }
+    const validationMessage = validateAddress()
+    if (validationMessage) {
+      setValidationError(validationMessage)
+      toast.error(validationMessage)
+      return
+    }
+    setValidationError('')
     setLoading(true)
     try {
       // 1. Create order in our system
@@ -97,6 +145,13 @@ export default function CheckoutPage() {
   // ── BANK TRANSFER: create order, show instructions ──────────
   const handleBankTransfer = async () => {
     if (!addressComplete) { toast.error('Please complete your shipping address'); return }
+    const validationMessage = validateAddress()
+    if (validationMessage) {
+      setValidationError(validationMessage)
+      toast.error(validationMessage)
+      return
+    }
+    setValidationError('')
     setLoading(true)
     try {
       const order = await api.post('orders', createOrderPayload())
@@ -136,46 +191,68 @@ export default function CheckoutPage() {
                 Shipping Address
               </h2>
               <div className="grid grid-cols-2 gap-4">
+                {validationError && <div className="col-span-2 text-sm text-red-600">{validationError}</div>}
                 <div className="col-span-2">
                   <label className="text-sm font-semibold block mb-1">Full Name *</label>
                   <input required value={address.fullName}
-                    onChange={e => setAddress(a => ({ ...a, fullName: e.target.value }))}
+                    onChange={e => {
+                      setAddress(a => ({ ...a, fullName: e.target.value }))
+                      if (validationError) setValidationError('')
+                    }}
                     className="input" placeholder="Himal Perera" />
                 </div>
                 <div>
                   <label className="text-sm font-semibold block mb-1">Email *</label>
                   <input type="email" required value={address.email}
-                    onChange={e => setAddress(a => ({ ...a, email: e.target.value }))}
+                    onChange={e => {
+                      setAddress(a => ({ ...a, email: e.target.value }))
+                      if (validationError) setValidationError('')
+                    }}
                     className="input" placeholder="you@email.com" />
                 </div>
                 <div>
                   <label className="text-sm font-semibold block mb-1">Phone</label>
                   <input value={address.phone}
-                    onChange={e => setAddress(a => ({ ...a, phone: e.target.value }))}
-                    className="input" placeholder="+94 77 123 4567" />
+                    onChange={e => {
+                      setAddress(a => ({ ...a, phone: e.target.value }))
+                      if (validationError) setValidationError('')
+                    }}
+                    className="input" placeholder="0771234567" />
                 </div>
                 <div className="col-span-2">
                   <label className="text-sm font-semibold block mb-1">Street Address *</label>
                   <input required value={address.address}
-                    onChange={e => setAddress(a => ({ ...a, address: e.target.value }))}
+                    onChange={e => {
+                      setAddress(a => ({ ...a, address: e.target.value }))
+                      if (validationError) setValidationError('')
+                    }}
                     className="input" placeholder="45 Temple Road" />
                 </div>
                 <div>
                   <label className="text-sm font-semibold block mb-1">City *</label>
                   <input required value={address.city}
-                    onChange={e => setAddress(a => ({ ...a, city: e.target.value }))}
+                    onChange={e => {
+                      setAddress(a => ({ ...a, city: e.target.value }))
+                      if (validationError) setValidationError('')
+                    }}
                     className="input" placeholder="Colombo" />
                 </div>
                 <div>
                   <label className="text-sm font-semibold block mb-1">State / Province</label>
                   <input value={address.state}
-                    onChange={e => setAddress(a => ({ ...a, state: e.target.value }))}
+                    onChange={e => {
+                      setAddress(a => ({ ...a, state: e.target.value }))
+                      if (validationError) setValidationError('')
+                    }}
                     className="input" placeholder="Western" />
                 </div>
                 <div>
                   <label className="text-sm font-semibold block mb-1">Postal Code</label>
                   <input value={address.postalCode}
-                    onChange={e => setAddress(a => ({ ...a, postalCode: e.target.value }))}
+                    onChange={e => {
+                      setAddress(a => ({ ...a, postalCode: e.target.value }))
+                      if (validationError) setValidationError('')
+                    }}
                     className="input" placeholder="00300" />
                 </div>
                 <div>
