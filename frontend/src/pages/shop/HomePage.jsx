@@ -304,12 +304,15 @@ export default function HomePage() {
             <motion.div
               initial={{
                 opacity: 0,
+                x: 40,
               }}
               animate={{
                 opacity: 1,
+                x: 0,
               }}
               transition={{
-                duration: 0.5,
+                duration: 0.7,
+                delay: 0.2,
               }}
               className="relative z-20 hidden min-h-[410px] items-center lg:flex"
             >
@@ -319,24 +322,9 @@ export default function HomePage() {
                     title,
                     description,
                     Icon,
-                  }, index) => (
-                    <motion.div
+                  }) => (
+                    <div
                       key={title}
-                      initial={{
-                        opacity: 0,
-                        scale: 0.9,
-                        y: 20,
-                      }}
-                      animate={{
-                        opacity: 1,
-                        scale: 1,
-                        y: 0,
-                      }}
-                      transition={{
-                        duration: 0.6,
-                        delay: 0.3 + index * 0.1,
-                        ease: 'easeOut',
-                      }}
                       className="rounded-[1.5rem] border border-gold/20 bg-[#21150F]/55 p-4 shadow-[0_16px_40px_rgba(0,0,0,0.24)] backdrop-blur-[10px] xl:p-5"
                     >
                       <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl border border-gold/20 bg-gold/15 text-gold xl:h-11 xl:w-11">
@@ -350,7 +338,7 @@ export default function HomePage() {
                       <p className="text-[11px] leading-relaxed text-gray-300/80 xl:text-xs">
                         {description}
                       </p>
-                    </motion.div>
+                    </div>
                   )
                 )}
               </div>
