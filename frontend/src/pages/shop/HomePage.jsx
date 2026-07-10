@@ -194,8 +194,8 @@ export default function HomePage() {
         <div className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-r from-transparent to-gold/5 lg:hidden" />
 
         {/* Hero content */}
-        <div className="relative z-10 mx-auto w-full max-w-7xl px-4 py-12 sm:px-8 sm:py-10 lg:px-8 lg:py-14">
-          <div className="grid items-center gap-8 lg:grid-cols-[0.92fr_1.08fr] xl:gap-10">
+        <div className="relative z-10 mx-auto w-full max-w-7xl px-4 py-14 sm:px-8 lg:px-8 lg:py-10">
+          <div className="grid items-center gap-10 lg:grid-cols-[0.92fr_1.08fr] xl:gap-12">
             {/* Left content */}
             <motion.div
               initial={{
@@ -252,8 +252,8 @@ export default function HomePage() {
                 </Link>
               </div>
 
-              <div className="mt-8 flex flex-wrap gap-6 border-t border-white/10 pt-6 sm:gap-7">
-                {[ 
+              <div className="mt-10 flex flex-wrap gap-7 border-t border-white/10 pt-8 sm:gap-8">
+                {[
                   ['500+', 'Products'],
                   ['1200+', 'Happy Customers'],
                   ['15+', 'Countries'],
@@ -319,7 +319,7 @@ export default function HomePage() {
       </section>
 
       {/* SHOP BY CATEGORY */}
-      <section className="section py-10">
+      <section className="section py-10 lg:py-12">
         <div className="mb-6 flex items-baseline justify-between">
           <h2 className="font-display text-3xl font-bold text-deep">
             Shop by{' '}
@@ -380,8 +380,8 @@ export default function HomePage() {
 
       {/* NEW ARRIVALS */}
       <section className="bg-gold-50 py-12">
-        <div className="section">
-          <div className="mb-8 flex items-baseline justify-between">
+        <div className="section py-8 lg:py-10">
+          <div className="mb-6 flex items-baseline justify-between">
             <h2 className="font-display text-3xl font-bold text-deep">
               New{' '}
               <span className="text-gold">
@@ -417,7 +417,7 @@ export default function HomePage() {
       </section>
 
       {/* FEATURED PRODUCTS */}
-      <section className="section py-10">
+      <section className="section py-10 lg:py-12">
         <div className="mb-6 flex items-baseline justify-between">
           <h2 className="font-display text-3xl font-bold text-deep">
             Featured{' '}
