@@ -196,7 +196,7 @@ export default function HomePage() {
                 <img
                   src={heroPeacockSaree}
                   alt="Kesara Bathik peacock saree"
-                  className="absolute right-0 bottom-[-3rem] h-[760px] w-auto max-w-none object-cover object-right opacity-85 drop-shadow-[0_20px_60px_rgba(0,0,0,0.45)]"
+                  className="absolute right-0 bottom-[-3rem] h-[700px] w-auto max-w-none object-cover object-right opacity-85 drop-shadow-[0_20px_60px_rgba(0,0,0,0.45)]"
                 />
               </div>
 
