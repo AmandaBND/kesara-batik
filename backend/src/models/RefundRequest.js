@@ -8,6 +8,7 @@ const refundRequestSchema = new mongoose.Schema({
   amount: { type: Number, required: true },
   currency: { type: String, default: 'CAD' },
   reason: String,
+  phoneNumber: String,
   accountNumber: String,
   bankName: String,
   accountHolderName: String,

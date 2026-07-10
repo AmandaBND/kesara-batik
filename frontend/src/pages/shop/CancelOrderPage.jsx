@@ -10,8 +10,10 @@ export default function CancelOrderPage() {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [validationError, setValidationError] = useState('')
   const [form, setForm] = useState({
     reason: '',
+    phoneNumber: '',
     accountNumber: '',
     bankName: '',
     accountHolderName: '',
@@ -44,6 +46,20 @@ export default function CancelOrderPage() {
     e.preventDefault()
     setSubmitting(true)
     setError('')
+    setValidationError('')
+
+    if (!/^\d+$/.test(form.phoneNumber.trim())) {
+      setValidationError('Phone number must contain only numbers.')
+      setSubmitting(false)
+      return
+    }
+
+    if (!/^\d+$/.test(form.accountNumber.trim())) {
+      setValidationError('Account number must contain only numbers.')
+      setSubmitting(false)
+      return
+    }
+
     try {
       await api.post(`orders/${id}/cancel`, form)
       navigate('/orders')
@@ -78,6 +94,10 @@ export default function CancelOrderPage() {
                 <input value={form.reason} onChange={e => setForm({ ...form, reason: e.target.value })} className="input" required />
               </div>
               <div>
+                <label className="block text-sm font-medium mb-2">Phone Number</label>
+                <input value={form.phoneNumber} onChange={e => setForm({ ...form, phoneNumber: e.target.value })} className="input" placeholder="0771234567" required />
+              </div>
+              <div>
                 <label className="block text-sm font-medium mb-2">Account Holder Name</label>
                 <input value={form.accountHolderName} onChange={e => setForm({ ...form, accountHolderName: e.target.value })} className="input" required />
               </div>
@@ -98,6 +118,8 @@ export default function CancelOrderPage() {
               <label className="block text-sm font-medium mb-2">Additional Notes</label>
               <textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} className="input min-h-[100px]" />
             </div>
+            {validationError && <p className="text-sm text-red-600">{validationError}</p>}
+            {error && <p className="text-sm text-red-600">{error}</p>}
             <button type="submit" disabled={submitting} className="btn-gold">{submitting ? 'Submitting...' : 'Submit Cancellation Request'}</button>
           </form>
         )}

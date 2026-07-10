@@ -155,7 +155,20 @@ exports.createOrder = asyncHandler(async (req, res) => {
 // GET /api/orders/my
 exports.getMyOrders = asyncHandler(async (req, res) => {
   const orders = await Order.find({ user: req.user._id }).sort('-createdAt').populate('items.product', 'name images slug');
-  res.json(orders);
+  const orderIds = orders.map(order => order._id);
+  const refundRequests = await RefundRequest.find({ order: { $in: orderIds } }).select('_id order status createdAt');
+  const refundMap = new Map(refundRequests.map(refund => [refund.order.toString(), refund]));
+
+  const mappedOrders = orders.map(order => {
+    const refund = refundMap.get(order._id.toString());
+    return {
+      ...order.toObject(),
+      refundRequestId: refund?._id || null,
+      refundStatus: refund?.status || null,
+    };
+  });
+
+  res.json(mappedOrders);
 });
 
 // GET /api/orders/:id
@@ -248,7 +261,21 @@ exports.requestCancelOrder = asyncHandler(async (req, res) => {
     return res.status(400).json({ message: 'Sorry, an order can cancel only within 1 day from order date.' });
   }
 
-  const { reason, accountNumber, bankName, accountHolderName, branch, notes } = req.body;
+  const { reason, phoneNumber, accountNumber, bankName, accountHolderName, branch, notes } = req.body;
+
+  if (!/^[0-9]+$/.test(String(phoneNumber || '').trim())) {
+    return res.status(400).json({ message: 'Phone number must contain only numbers.' });
+  }
+
+  if (!/^[0-9]+$/.test(String(accountNumber || '').trim())) {
+    return res.status(400).json({ message: 'Account number must contain only numbers.' });
+  }
+
+  const existingRefund = await RefundRequest.findOne({ order: order._id });
+  if (existingRefund) {
+    return res.status(409).json({ message: 'A refund request already exists for this order.' });
+  }
+
   const refundRequest = await RefundRequest.create({
     order: order._id,
     user: req.user?._id,
@@ -257,6 +284,7 @@ exports.requestCancelOrder = asyncHandler(async (req, res) => {
     amount: order.pricing?.total || 0,
     currency: order.pricing?.currency || 'CAD',
     reason,
+    phoneNumber,
     accountNumber,
     bankName,
     accountHolderName,

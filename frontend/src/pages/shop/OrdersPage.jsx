@@ -50,7 +50,15 @@ export default function OrdersPage() {
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2 mb-4">
-                  <Link to={`/orders/${order._id}/cancel`} className="btn-gold text-sm">Cancel Order</Link>
+                  {order.refundStatus === 'paid' ? (
+                    <button className="btn-gold text-sm opacity-70 cursor-not-allowed" disabled>Refund successful</button>
+                  ) : order.refundStatus === 'pending' ? (
+                    <button className="btn-gold text-sm opacity-70 cursor-not-allowed" disabled>Cancel submitted</button>
+                  ) : order.refundStatus === 'canceled' ? (
+                    <button className="btn-gold text-sm opacity-70 cursor-not-allowed" disabled>Cancel rejected</button>
+                  ) : (
+                    <Link to={`/orders/${order._id}/cancel`} className="btn-gold text-sm">Cancel Order</Link>
+                  )}
                 </div>
                 <div className="flex gap-3 overflow-x-auto pb-1">
                 </div>
