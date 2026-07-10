@@ -1,36 +1,63 @@
-# Genie Payment Fix Notes — Kesara Batik
+# Genie Payment Amount Fix — Kesara Batik
 
-## Files changed
+## Root cause
 
-1. `backend/src/controllers/paymentController.js`
-   - Removed the old `/charge` and `/v1/charge` calls.
-   - Uses Genie Transaction API endpoint: `https://api.geniebiz.lk/public/transactions`.
-   - Sends the Genie App Key directly in the `Authorization` header, without `Bearer`.
-   - Sends V2 transaction fields: `amount`, `currency`, `redirectUrl`, `webhook`, `localId`, `customerReference`, `billingDetails`, `expires`, `signature`, `apiVersion`, `appVersion`, `signMethod`.
-   - Generates signature as: `sha1("amount=" + amount + "&currency=" + currency + "&apiKey=" + appKey)`.
-   - Uses `GET /public/transactions/{transactionId}` to verify pending payments.
-   - Keeps `/api/payments/genie/ping`, but makes it safe: it no longer creates a real Genie transaction.
+The website stores and displays the order total in normal LKR units. For example:
 
-2. `frontend/src/pages/shop/CheckoutPage.jsx`
-   - Forces Genie checkout orders to use `LKR`, because the Genie app currency is LKR.
-   - Keeps bank transfer using the selected display currency.
-   - Shows the correct LKR total when Genie is selected.
+- Website total: `LKR 8,450.00`
+- Old Genie payload: `amount: 8450`
+- Genie display: `LKR 84.50`
 
-3. `backend/.env.example`
-   - Removed exposed real Genie keys.
-   - Added the correct production variables.
+Genie interprets the integer `amount` as the smallest currency unit. Therefore, the API payload must send `845000` for an `LKR 8,450.00` payment.
 
-## Railway variables to use
+## Main fix
 
+`backend/src/controllers/paymentController.js` now converts the verified order total to minor units before creating the Genie transaction:
+
+```text
+LKR 8,450.00 -> 845000
+```
+
+The signature is generated using the exact same minor-unit value sent in the payload.
+
+## Additional payment protections
+
+1. The backend recalculates every order total from database product prices instead of trusting browser totals.
+2. LKR uses only each product's manual `priceLKR`; it is never generated from the CAD exchange rate.
+3. Foreign currencies continue to use the CAD price and stored exchange rates.
+4. Genie checkout is accepted only for an LKR order.
+5. The frontend shows Genie only when IP detection has locked the visitor to Sri Lanka/LKR.
+6. Overseas visitors cannot retain or select LKR through stale browser storage.
+7. New orders are always created with payment status `pending`; the browser cannot submit `paid`.
+8. The exact Genie minor-unit amount and currency are stored with the order for audit/debugging.
+
+## Validation completed
+
+Automated backend tests cover:
+
+- `8450.00 -> 845000`
+- decimal preservation
+- manual LKR pricing independent of exchange rates
+- expected LKR subtotal + shipping total
+
+Run:
+
+```bash
+cd backend
+npm test
+```
+
+The production frontend build was also completed successfully with `npm run build`.
+
+## Railway variables
+
+```env
 GENIE_MODE=production
 GENIE_API_BASE=https://api.geniebiz.lk/public
 GENIE_APP_ID=your_application_id_from_genie_dashboard
 GENIE_APP_KEY=your_api_key_secret_from_genie_dashboard
 BACKEND_URL=https://kesara-batik-production.up.railway.app
 FRONTEND_URL=https://www.kesarabathik.com
+```
 
-You may keep `GENIE_API_SECRET` instead of `GENIE_APP_KEY`; the backend supports both. Prefer `GENIE_APP_KEY` for clarity.
-
-## Important
-
-The API key and public key were visible in the screenshot and also existed in the old `.env.example`. Regenerate/rotate the Genie key before going live.
+Rotate any Genie keys that were previously exposed in screenshots or source files.

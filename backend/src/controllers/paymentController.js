@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 const asyncHandler = require('express-async-handler');
 const Order = require('../models/Order');
+const { toMinorUnits } = require('../utils/money');
 
 // ═══════════════════════════════════════════════════════════
 //  DIALOG GENIE BUSINESS — Transaction API V2
@@ -243,8 +244,12 @@ exports.createGeniePayment = asyncHandler(async (req, res) => {
     throw new Error('Genie accepts this app in LKR only. Please checkout in LKR or use Bank Transfer.');
   }
 
-  const amountLKR = Math.round(Number(order.pricing.total || 0));
-  if (!Number.isFinite(amountLKR) || amountLKR <= 0) {
+  const amountLKR = Number(order.pricing.total || 0);
+  let amountMinor;
+  try {
+    // Genie expects the integer smallest unit. Example: LKR 8,450.00 -> 845000.
+    amountMinor = toMinorUnits(amountLKR, 2);
+  } catch {
     res.status(400);
     throw new Error('Invalid order amount for Genie payment.');
   }
@@ -253,7 +258,7 @@ exports.createGeniePayment = asyncHandler(async (req, res) => {
   const backendUrl = cleanUrl(process.env.BACKEND_URL, 'https://kesara-batik-production.up.railway.app');
 
   const payload = {
-    amount: amountLKR,
+    amount: amountMinor,
     currency: 'LKR',
     redirectUrl: `${frontendUrl}/payment/genie/return?orderId=${order._id}`,
     webhook: `${backendUrl}/api/payments/genie/webhook`,
@@ -261,7 +266,7 @@ exports.createGeniePayment = asyncHandler(async (req, res) => {
     customerReference: order.orderNumber || order._id.toString(),
     billingDetails: getBillingDetails(order),
     expires: expiryIso(24),
-    signature: buildSignature(amountLKR, 'LKR'),
+    signature: buildSignature(amountMinor, 'LKR'),
     apiVersion: GENIE_API_VERSION,
     appVersion: GENIE_APP_VERSION,
     signMethod: GENIE_SIGN_METHOD,
@@ -270,7 +275,8 @@ exports.createGeniePayment = asyncHandler(async (req, res) => {
   const endpoint = `${getGenieBaseUrl()}/transactions`;
   console.log('[Genie] Creating transaction → POST', endpoint);
   console.log('[Genie] Payload preview:', {
-    amount: payload.amount,
+    amountMajorLKR: amountLKR,
+    amountMinor: payload.amount,
     currency: payload.currency,
     localId: payload.localId,
     customerReference: payload.customerReference,
@@ -312,6 +318,8 @@ exports.createGeniePayment = asyncHandler(async (req, res) => {
       'payment.transactionId': transactionId,
       'payment.genieOrderId': transactionId,
       'payment.status': 'pending',
+      'payment.gatewayAmountMinor': amountMinor,
+      'payment.gatewayCurrency': 'LKR',
     });
 
     console.log('[Genie] ✅ Transaction created:', transactionId || '(no id)', '→', paymentUrl);
@@ -402,6 +410,7 @@ exports.pingGenie = asyncHandler(async (req, res) => {
     CREATE_TRANSACTION_ENDPOINT: `${baseUrl}/transactions`,
     GET_TRANSACTION_ENDPOINT: `${baseUrl}/transactions/{transactionId}`,
     AUTH_STYLE: 'Authorization header contains the Genie App Key directly. No Bearer prefix.',
-    SIGNATURE_FORMULA: 'sha1("amount=" + amount + "&currency=" + currency + "&apiKey=" + appKey)',
+    AMOUNT_FORMAT: 'Integer smallest unit: LKR 8450.00 must be sent as 845000',
+    SIGNATURE_FORMULA: 'sha1("amount=" + minorUnitAmount + "&currency=" + currency + "&apiKey=" + appKey)',
   });
 });

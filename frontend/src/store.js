@@ -121,10 +121,10 @@ export const useCurrencyStore = create(persist((set, get) => ({
   
   setCurrency: (currency) => {
     const state = get();
-    // Sri Lankan users must always use LKR, cannot select other currencies
-    if (state.isFromSriLanka && currency !== 'LKR') {
-      return;
-    }
+    // Sri Lankan visitors use only the separate manual LKR price list.
+    if (state.isFromSriLanka && currency !== 'LKR') return;
+    // Overseas visitors cannot switch into the Sri Lankan price list.
+    if (!state.isFromSriLanka && currency === 'LKR') return;
     set({ currency });
   },
   
@@ -134,13 +134,18 @@ export const useCurrencyStore = create(persist((set, get) => ({
   
   setCountryInfo: (isFromSriLanka) => {
     if (isFromSriLanka) {
-      set({ 
-        isFromSriLanka: true, 
-        currency: 'LKR', 
-        currencyLocked: true 
+      set({
+        isFromSriLanka: true,
+        currency: 'LKR',
+        currencyLocked: true,
       });
     } else {
-      set({ isFromSriLanka: false });
+      const currentCurrency = get().currency;
+      set({
+        isFromSriLanka: false,
+        currency: currentCurrency === 'LKR' ? 'CAD' : currentCurrency,
+        currencyLocked: false,
+      });
     }
   },
   
@@ -148,8 +153,10 @@ export const useCurrencyStore = create(persist((set, get) => ({
     const state = get()
     const sym = state.symbols[state.currency] || state.currency + ' '
 
-    if (state.currency === 'LKR' && currentProduct?.priceLKR != null && currentProduct.priceLKR > 0) {
-      return sym + Number(currentProduct.priceLKR).toFixed(2)
+    if (state.currency === 'LKR') {
+      return currentProduct?.priceLKR != null && Number(currentProduct.priceLKR) > 0
+        ? sym + Number(currentProduct.priceLKR).toFixed(2)
+        : `${sym}Not available`
     }
 
     const converted = cadPrice * (state.rates[state.currency] || 1)

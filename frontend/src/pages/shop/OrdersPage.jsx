@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
-import { useCurrencyStore } from '../../store'
+import { formatCurrencyAmount } from '../../utils/money'
 import api from '../../utils/api'
 
 const STATUS_COLORS = {
@@ -17,7 +17,6 @@ const STATUS_COLORS = {
 export default function OrdersPage() {
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
-  const { format } = useCurrencyStore()
 
   useEffect(() => {
     api.get('orders/my').then(setOrders).finally(() => setLoading(false))
@@ -47,7 +46,7 @@ export default function OrdersPage() {
                   </div>
                   <div className="flex items-center gap-3">
                     <span className={`text-xs font-semibold px-3 py-1 rounded-full capitalize ${STATUS_COLORS[order.status] || 'bg-gray-100 text-gray-600'}`}>{order.status}</span>
-                    <span className="font-bold text-gold">{format(order.pricing.total)}</span>
+                    <span className="font-bold text-gold">{formatCurrencyAmount(order.pricing.total, order.pricing.currency)}</span>
                   </div>
                 </div>
                 <div className="flex gap-3 overflow-x-auto pb-1">

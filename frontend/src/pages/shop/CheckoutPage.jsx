@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCartStore, useAuthStore, useCurrencyStore } from '../../store'
 import { getUnitPrice, getCartSubtotal, getShipping, getCartTotal } from '../../utils/pricing'
@@ -21,10 +21,11 @@ const COUNTRIES = [
 export default function CheckoutPage() {
   const { items, clear } = useCartStore()
   const { user } = useAuthStore()
-  const { formatAmount, currency, rates } = useCurrencyStore()
+  const { formatAmount, currency, rates, isFromSriLanka } = useCurrencyStore()
   const navigate = useNavigate()
 
-  const [payMethod, setPayMethod] = useState('genie')
+  const genieAvailable = isFromSriLanka && currency === 'LKR'
+  const [payMethod, setPayMethod] = useState(() => genieAvailable ? 'genie' : 'bank_transfer')
   const [loading,   setLoading]   = useState(false)
   const [address,   setAddress]   = useState({
     fullName:   user?.name  || '',
@@ -39,14 +40,20 @@ export default function CheckoutPage() {
 
   const addressComplete = address.fullName && address.email && address.address && address.city && address.country
 
-  // Genie app is registered in LKR, so force Genie checkout amounts to LKR.
-  // Bank transfer keeps the currently selected display currency.
-  const checkoutCurrency = payMethod === 'genie' ? 'LKR' : (currency || 'LKR')
+  // Never convert an overseas price into the separate Sri Lankan price list.
+  // Genie is shown only when IP-based currency detection has locked checkout to LKR.
+  const checkoutCurrency = currency || 'CAD'
   const checkoutSubtotal = getCartSubtotal(items, checkoutCurrency, rates)
   const checkoutShipping = getShipping(items, checkoutCurrency, rates)
   const checkoutTotal = getCartTotal(items, checkoutCurrency, rates)
   const formatCheckoutAmount = (amount) =>
     checkoutCurrency === 'LKR' ? `LKR ${Number(amount).toFixed(2)}` : formatAmount(amount)
+
+  useEffect(() => {
+    if (!genieAvailable && payMethod === 'genie') {
+      setPayMethod('bank_transfer')
+    }
+  }, [genieAvailable, payMethod])
 
   const createOrderPayload = () => ({
     items: items.map(i => ({
@@ -69,6 +76,7 @@ export default function CheckoutPage() {
 
   // ── GENIE: create order → get Genie payment URL → redirect ──
   const handleGenieCheckout = async () => {
+    if (!genieAvailable) { toast.error('Dialog Genie is available only for Sri Lankan LKR checkout'); return }
     if (!addressComplete) { toast.error('Please complete your shipping address'); return }
     setLoading(true)
     try {
@@ -189,20 +197,22 @@ export default function CheckoutPage() {
               </h2>
 
               {/* Method selector */}
-              <div className="grid grid-cols-2 gap-3 mb-6">
-                {/* Genie card */}
-                <button
-                  onClick={() => setPayMethod('genie')}
-                  className={`p-4 border-2 rounded-xl flex flex-col items-center gap-2 transition-all ${
-                    payMethod === 'genie'
-                      ? 'border-gold bg-amber-50 shadow-md'
-                      : 'border-gray-200 hover:border-gold/40'
-                  }`}
-                >
-                  <img src="/genie-logo.jpg" alt="Dialog Genie" className="h-8 object-contain rounded" />
-                  <span className="text-xs font-semibold text-deep">Visa / Dialog Genie</span>
-                  <span className="text-[10px] text-gray-400">Cards · Genie Wallet · QR</span>
-                </button>
+              <div className={`grid ${genieAvailable ? 'grid-cols-2' : 'grid-cols-1'} gap-3 mb-6`}>
+                {/* Genie card — only for IP-locked Sri Lankan LKR checkout */}
+                {genieAvailable && (
+                  <button
+                    onClick={() => setPayMethod('genie')}
+                    className={`p-4 border-2 rounded-xl flex flex-col items-center gap-2 transition-all ${
+                      payMethod === 'genie'
+                        ? 'border-gold bg-amber-50 shadow-md'
+                        : 'border-gray-200 hover:border-gold/40'
+                    }`}
+                  >
+                    <img src="/genie-logo.jpg" alt="Dialog Genie" className="h-8 object-contain rounded" />
+                    <span className="text-xs font-semibold text-deep">Visa / Dialog Genie</span>
+                    <span className="text-[10px] text-gray-400">Cards · Genie Wallet · QR</span>
+                  </button>
+                )}
 
                 {/* Bank Transfer card */}
                 <button
@@ -218,6 +228,12 @@ export default function CheckoutPage() {
                   <span className="text-[10px] text-gray-400">HNB Direct Deposit</span>
                 </button>
               </div>
+
+              {!genieAvailable && (
+                <p className="text-xs text-gray-500 mb-5">
+                  Dialog Genie uses the Sri Lankan LKR price list and is available only when your location is detected as Sri Lanka.
+                </p>
+              )}
 
               {/* Genie info panel */}
               {payMethod === 'genie' && (

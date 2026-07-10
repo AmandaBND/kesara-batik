@@ -4,8 +4,11 @@ export const CAD_SHIPPING = 18
 
 export function getUnitPrice(product, currency, rates) {
   if (!product) return 0
-  if (currency === 'LKR' && product.priceLKR != null && product.priceLKR > 0) {
-    return product.priceLKR
+  if (currency === 'LKR') {
+    // LKR is a separate manually maintained price list; never exchange-convert CAD.
+    return product.priceLKR != null && Number(product.priceLKR) > 0
+      ? Number(product.priceLKR)
+      : 0
   }
   const cadPrice = Number(product.price) || 0
   return cadPrice * (rates[currency] ?? 1)

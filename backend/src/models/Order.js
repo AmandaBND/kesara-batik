@@ -52,6 +52,8 @@ const orderSchema = new mongoose.Schema(
       },
       transactionId: String,   // Genie orderId stored here
       genieOrderId: String,
+      gatewayAmountMinor: Number,
+      gatewayCurrency: String,
       paidAt: Date,
       refundedAt: Date,
       refundAmount: Number,

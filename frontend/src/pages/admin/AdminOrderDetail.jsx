@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import api from '../../utils/api'
 import toast from 'react-hot-toast'
+import { formatCurrencyAmount } from '../../utils/money'
 
 const STATUSES = ['pending','confirmed','processing','shipped','delivered','cancelled','refunded']
 const STATUS_COLORS = { pending:'bg-yellow-100 text-yellow-700', confirmed:'bg-blue-100 text-blue-700', processing:'bg-purple-100 text-purple-700', shipped:'bg-indigo-100 text-indigo-700', delivered:'bg-green-100 text-green-700', cancelled:'bg-red-100 text-red-600', refunded:'bg-gray-100 text-gray-600' }
@@ -41,7 +42,7 @@ export default function AdminOrderDetail() {
 
   const handleRefund = async () => {
     if (!refundAmt || !refundReason) return toast.error('Amount and reason required')
-    if (!confirm(`Process refund of CA$${refundAmt}?`)) return
+    if (!confirm(`Process refund of ${formatCurrencyAmount(refundAmt, order.pricing.currency)}?`)) return
     setRefunding(true)
     try {
       const { order: updated } = await api.post(`orders/${id}/refund`, { amount: parseFloat(refundAmt), reason: refundReason })
@@ -73,17 +74,17 @@ export default function AdminOrderDetail() {
                 <div key={i} className="flex gap-3 items-center py-2 border-b last:border-0">
                   <img src={item.image || '/placeholder.jpg'} alt={item.name} className="w-14 h-14 rounded-lg object-cover" />
                   <div className="flex-1"><p className="font-medium text-sm">{item.name}</p>{item.variant?.size && <p className="text-xs text-gray-400">Size: {item.variant.size}</p>}{item.sku && <p className="text-xs text-gray-400">SKU: {item.sku}</p>}</div>
-                  <div className="text-right"><p className="font-bold">CA${item.price}</p><p className="text-xs text-gray-400">×{item.quantity}</p></div>
-                  <div className="font-bold text-gold">CA${(item.price * item.quantity).toFixed(2)}</div>
+                  <div className="text-right"><p className="font-bold">{formatCurrencyAmount(item.price, order.pricing.currency)}</p><p className="text-xs text-gray-400">×{item.quantity}</p></div>
+                  <div className="font-bold text-gold">{formatCurrencyAmount(item.price * item.quantity, order.pricing.currency)}</div>
                 </div>
               ))}
             </div>
             <div className="mt-4 pt-4 border-t space-y-1 text-sm">
-              <div className="flex justify-between text-gray-500"><span>Subtotal</span><span>CA${order.pricing.subtotal?.toFixed(2)}</span></div>
-              <div className="flex justify-between text-gray-500"><span>Shipping</span><span>CA${order.pricing.shipping?.toFixed(2)}</span></div>
-              {order.pricing.discount > 0 && <div className="flex justify-between text-green-600"><span>Discount</span><span>-CA${order.pricing.discount?.toFixed(2)}</span></div>}
-              <div className="flex justify-between font-bold text-base border-t pt-2"><span>Total</span><span className="text-gold">CA${order.pricing.total?.toFixed(2)}</span></div>
-              {order.payment.refundAmount > 0 && <div className="flex justify-between text-red-500"><span>Refunded</span><span>CA${order.payment.refundAmount?.toFixed(2)}</span></div>}
+              <div className="flex justify-between text-gray-500"><span>Subtotal</span><span>{formatCurrencyAmount(order.pricing.subtotal, order.pricing.currency)}</span></div>
+              <div className="flex justify-between text-gray-500"><span>Shipping</span><span>{formatCurrencyAmount(order.pricing.shipping, order.pricing.currency)}</span></div>
+              {order.pricing.discount > 0 && <div className="flex justify-between text-green-600"><span>Discount</span><span>-{formatCurrencyAmount(order.pricing.discount, order.pricing.currency)}</span></div>}
+              <div className="flex justify-between font-bold text-base border-t pt-2"><span>Total</span><span className="text-gold">{formatCurrencyAmount(order.pricing.total, order.pricing.currency)}</span></div>
+              {order.payment.refundAmount > 0 && <div className="flex justify-between text-red-500"><span>Refunded</span><span>{formatCurrencyAmount(order.payment.refundAmount, order.pricing.currency)}</span></div>}
             </div>
           </div>
 
@@ -118,7 +119,7 @@ export default function AdminOrderDetail() {
             <div className="bg-white rounded-2xl border border-red-100 p-5">
               <h3 className="font-bold mb-4 text-red-600">Process Refund</h3>
               <div className="grid grid-cols-2 gap-3 mb-3">
-                <div><label className="text-xs font-semibold block mb-1">Refund Amount (CAD)</label><input type="number" min="0" max={order.pricing.total} step="0.01" value={refundAmt} onChange={e => setRefundAmt(e.target.value)} className="input text-sm" placeholder={`Max: CA$${order.pricing.total}`} /></div>
+                <div><label className="text-xs font-semibold block mb-1">Refund Amount ({order.pricing.currency})</label><input type="number" min="0" max={order.pricing.total} step="0.01" value={refundAmt} onChange={e => setRefundAmt(e.target.value)} className="input text-sm" placeholder={`Max: ${formatCurrencyAmount(order.pricing.total, order.pricing.currency)}`} /></div>
                 <div><label className="text-xs font-semibold block mb-1">Reason</label><input value={refundReason} onChange={e => setRefundReason(e.target.value)} className="input text-sm" placeholder="e.g. Item damaged in shipping" /></div>
               </div>
               <button onClick={handleRefund} disabled={refunding} className="bg-red-500 text-white font-semibold px-5 py-2 rounded-xl text-sm hover:bg-red-600 transition-colors disabled:opacity-50">{refunding ? 'Processing…' : 'Process Refund'}</button>

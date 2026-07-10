@@ -3,22 +3,70 @@ const Order = require('../models/Order');
 const Product = require('../models/Product');
 const { findVariant, getAvailableStock } = require('../utils/stock');
 const { sendOrderInvoiceEmails, sendShippingUpdateEmail } = require('../services/emailService');
+const { getExchangeRates, DEFAULT_RATES } = require('../services/exchangeRateService');
+const {
+  normalizeCurrency,
+  getProductUnitPrice,
+  buildOrderPricing,
+} = require('../utils/orderPricing');
 
 // POST /api/orders
 exports.createOrder = asyncHandler(async (req, res) => {
   const { items, shippingAddress, pricing, payment, notes } = req.body;
 
+  if (!Array.isArray(items) || items.length === 0) {
+    res.status(400);
+    throw new Error('Your cart is empty.');
+  }
+
+  if (!shippingAddress?.fullName || !shippingAddress?.email || !shippingAddress?.address || !shippingAddress?.city || !shippingAddress?.country) {
+    res.status(400);
+    throw new Error('Complete shipping address is required.');
+  }
+
+  if (!['genie', 'bank_transfer'].includes(payment?.method)) {
+    res.status(400);
+    throw new Error('Unsupported payment method.');
+  }
+
+  let currency;
+  try {
+    currency = normalizeCurrency(pricing?.currency);
+  } catch (err) {
+    res.status(400);
+    throw err;
+  }
+
+  if (payment.method === 'genie' && currency !== 'LKR') {
+    res.status(400);
+    throw new Error('Dialog Genie is available only for LKR checkout.');
+  }
+
+  const exchangeRateDoc = currency === 'LKR' ? null : await getExchangeRates();
+  const rates = {
+    ...DEFAULT_RATES,
+    ...(exchangeRateDoc?.rates?.toObject?.() || exchangeRateDoc?.rates || {}),
+  };
+
   const aggregated = new Map();
   for (const item of items) {
+    const quantity = Number(item.quantity);
+    if (!item.product || !Number.isInteger(quantity) || quantity <= 0) {
+      res.status(400);
+      throw new Error('Each order item must have a valid product and quantity.');
+    }
+
     const variant = item.variant || {};
     const aggKey = `${item.product}-${variant.size || ''}-${variant.color || ''}`;
     const existing = aggregated.get(aggKey);
-    if (existing) existing.quantity += item.quantity;
-    else aggregated.set(aggKey, { ...item, variant, quantity: item.quantity });
+    if (existing) existing.quantity += quantity;
+    else aggregated.set(aggKey, { ...item, variant, quantity });
   }
 
   const productCache = new Map();
   const enrichedItems = [];
+  let subtotal = 0;
+  let subtotalCAD = 0;
 
   for (const item of aggregated.values()) {
     let product = productCache.get(item.product.toString());
@@ -45,12 +93,40 @@ exports.createOrder = asyncHandler(async (req, res) => {
       throw new Error(`${product.name}: only ${available} in stock for the selected variant`);
     }
 
+    // Never trust item prices or totals sent by the browser. LKR uses the
+    // product's manually configured priceLKR; foreign currencies use CAD rates.
+    let unitPrice;
+    try {
+      unitPrice = getProductUnitPrice(product, currency, rates);
+    } catch (err) {
+      res.status(400);
+      throw err;
+    }
+    const cadUnitPrice = Number(product.price) || 0;
+    subtotal += unitPrice * item.quantity;
+    subtotalCAD += cadUnitPrice * item.quantity;
+
     enrichedItems.push({
-      ...item,
+      product: item.product,
+      quantity: item.quantity,
+      variant: item.variant,
       name: product.name,
       image: product.images?.[0]?.url || '',
-      price: product.price,
+      price: unitPrice,
     });
+  }
+
+  let verifiedPricing;
+  try {
+    verifiedPricing = buildOrderPricing({
+      subtotal,
+      subtotalCAD,
+      currency,
+      rates,
+    });
+  } catch (err) {
+    res.status(400);
+    throw err;
   }
 
   const order = await Order.create({
@@ -58,8 +134,8 @@ exports.createOrder = asyncHandler(async (req, res) => {
     guestEmail: req.user ? undefined : shippingAddress.email,
     items: enrichedItems,
     shippingAddress,
-    pricing,
-    payment,
+    pricing: verifiedPricing,
+    payment: { method: payment.method, status: 'pending' },
     notes,
     statusHistory: [{ status: 'pending', note: 'Order placed' }],
   });
@@ -160,7 +236,7 @@ exports.processRefund = asyncHandler(async (req, res) => {
   order.payment.refundAmount = amount;
   order.payment.refundReason = reason;
   order.status = 'refunded';
-  order.statusHistory.push({ status: 'refunded', note: `Refund of ${amount} CAD: ${reason}`, updatedBy: req.user._id });
+  order.statusHistory.push({ status: 'refunded', note: `Refund of ${amount} ${order.pricing.currency}: ${reason}`, updatedBy: req.user._id });
 
   await order.save();
   res.json({ message: 'Refund processed', order });
