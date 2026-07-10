@@ -133,6 +133,7 @@ export default function CheckoutPage() {
       // 2. Request Genie payment session from our backend
       const { paymentUrl } = await api.post('payments/genie/create', { orderId: order._id })
       if (!paymentUrl) throw new Error('Could not get Genie payment URL')
+      clear()
       // 3. Redirect to Genie hosted checkout page
       window.location.href = paymentUrl
     } catch (err) {
