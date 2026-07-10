@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { ueEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
@@ -18,7 +18,7 @@ import api from '../../utils/api'
 
 import heroPeacockSaree from '../../assets/home/hero-peacock-saree1.png'
 
-import womenCategoryImage from '../../assets/categories/women.jpg'
+import womenCategoryImage from '../../assets/categories/women.jpeg'
 import menCategoryImage from '../../assets/categories/men.jpeg'
 import kidsCategoryImage from '../../assets/categories/kids.jpeg'
 import familyCategoryImage from '../../assets/categories/family.jpeg'
@@ -194,8 +194,8 @@ export default function HomePage() {
         <div className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-r from-transparent to-gold/5 lg:hidden" />
 
         {/* Hero content */}
-        <div className="relative z-10 mx-auto w-full max-w-7xl px-4 py-16 sm:px-8 lg:px-8 lg:py-12">
-          <div className="grid items-center gap-10 lg:grid-cols-[0.92fr_1.08fr] xl:gap-12">
+        <div className="relative z-10 mx-auto w-full max-w-7xl px-4 py-12 sm:px-8 sm:py-10 lg:px-8 lg:py-14">
+          <div className="grid items-center gap-8 lg:grid-cols-[0.92fr_1.08fr] xl:gap-10">
             {/* Left content */}
             <motion.div
               initial={{
@@ -252,8 +252,8 @@ export default function HomePage() {
                 </Link>
               </div>
 
-              <div className="mt-10 flex flex-wrap gap-7 border-t border-white/10 pt-8 sm:gap-8">
-                {[
+              <div className="mt-8 flex flex-wrap gap-6 border-t border-white/10 pt-6 sm:gap-7">
+                {[ 
                   ['500+', 'Products'],
                   ['1200+', 'Happy Customers'],
                   ['15+', 'Countries'],
@@ -319,8 +319,8 @@ export default function HomePage() {
       </section>
 
       {/* SHOP BY CATEGORY */}
-      <section className="section">
-        <div className="mb-8 flex items-baseline justify-between">
+      <section className="section py-10">
+        <div className="mb-6 flex items-baseline justify-between">
           <h2 className="font-display text-3xl font-bold text-deep">
             Shop by{' '}
             <span className="text-gold">
@@ -379,7 +379,7 @@ export default function HomePage() {
       </section>
 
       {/* NEW ARRIVALS */}
-      <section className="bg-gold-50 py-16">
+      <section className="bg-gold-50 py-12">
         <div className="section">
           <div className="mb-8 flex items-baseline justify-between">
             <h2 className="font-display text-3xl font-bold text-deep">
@@ -417,8 +417,8 @@ export default function HomePage() {
       </section>
 
       {/* FEATURED PRODUCTS */}
-      <section className="section">
-        <div className="mb-8 flex items-baseline justify-between">
+      <section className="section py-10">
+        <div className="mb-6 flex items-baseline justify-between">
           <h2 className="font-display text-3xl font-bold text-deep">
             Featured{' '}
             <span className="text-gold">
