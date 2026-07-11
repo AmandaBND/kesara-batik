@@ -39,11 +39,6 @@ exports.createOrder = asyncHandler(async (req, res) => {
     throw err;
   }
 
-  if (payment.method === 'genie' && currency !== 'LKR') {
-    res.status(400);
-    throw new Error('Dialog Genie is available only for LKR checkout.');
-  }
-
   const exchangeRateDoc = currency === 'LKR' ? null : await getExchangeRates();
   const rates = {
     ...DEFAULT_RATES,

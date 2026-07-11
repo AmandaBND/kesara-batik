@@ -18,7 +18,7 @@ export default function TermsAndConditions() {
       <p className="mb-4">Handmade Product Notice: All Kesara Bathik products are handcrafted using traditional Sri Lankan batik techniques. Minor variations in color shades, wax patterns and dye distribution are natural characteristics and should not be considered defects.</p>
 
       <h2 className="text-lg font-semibold mt-6 mb-2">2. Pricing & Payments</h2>
-      <p className="mb-2">Prices are displayed in Sri Lankan Rupees (LKR). International customers may see approximate conversions. Final payment amounts may vary due to exchange rate fluctuations and bank fees. Payments are processed securely through Dialog Genie.</p>
+      <p className="mb-2">Sri Lankan customers are shown the separately maintained LKR product price list. International prices are based on the CAD product price and converted into the selected supported currency using the current CAD exchange rate. The order total confirmed at checkout is sent to Dialog Genie in that same checkout currency. Your card issuer may still apply its own fees or conversion rules.</p>
       <p className="mb-4">We reserve the right to cancel any transaction identified as fraudulent, suspicious, or high-risk.</p>
 
       <h2 className="text-lg font-semibold mt-6 mb-2">3. Shipping & Delivery</h2>

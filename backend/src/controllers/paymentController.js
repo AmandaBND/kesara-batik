@@ -2,7 +2,14 @@ const crypto = require('crypto');
 const asyncHandler = require('express-async-handler');
 const Order = require('../models/Order');
 const Product = require('../models/Product');
-const { toMinorUnits } = require('../utils/money');
+const {
+  toCurrencyMinorUnits,
+  getCurrencyFractionDigits,
+} = require('../utils/money');
+const {
+  normalizeCurrency,
+  SUPPORTED_CURRENCIES,
+} = require('../utils/orderPricing');
 const { applyStockChangeForOrderItem } = require('../utils/stock');
 
 // ═══════════════════════════════════════════════════════════
@@ -139,6 +146,34 @@ function findStatus(data) {
   );
 }
 
+function findCurrency(data) {
+  if (!data || typeof data !== 'object') return '';
+  return String(
+    data.currency ||
+    data.paymentCurrency ||
+    data.payment_currency ||
+    data?.transaction?.currency ||
+    data?.payment?.currency ||
+    data?.data?.currency ||
+    ''
+  ).trim().toUpperCase();
+}
+
+function findAmountMinor(data) {
+  if (!data || typeof data !== 'object') return null;
+  const raw =
+    data.amount ??
+    data.paymentAmount ??
+    data.payment_amount ??
+    data?.transaction?.amount ??
+    data?.payment?.amount ??
+    data?.data?.amount;
+
+  if (raw === undefined || raw === null || raw === '') return null;
+  const amount = Number(raw);
+  return Number.isSafeInteger(amount) && amount > 0 ? amount : null;
+}
+
 function isSuccessStatus(status) {
   return ['SUCCESS', 'SUCCEEDED', 'PAID', 'COMPLETED', 'CONFIRMED', 'CAPTURED', 'APPROVED'].includes(normalizeStatus(status));
 }
@@ -196,7 +231,38 @@ async function updateOrderFromGenieStatus(order, transactionData) {
   const transactionId = findTransactionId(transactionData) || order.payment?.transactionId || '';
 
   if (isSuccessStatus(status)) {
-    const updated = await Order.findByIdAndUpdate(order._id, {
+    const gatewayCurrency = findCurrency(transactionData);
+    const gatewayAmountMinor = findAmountMinor(transactionData);
+    const expectedCurrency = String(order.payment?.gatewayCurrency || '').toUpperCase();
+    const expectedAmountMinor = Number(order.payment?.gatewayAmountMinor || 0);
+
+    // A successful status is accepted only for the exact payment session that
+    // was created for this order. Some Genie responses omit these fields, so
+    // compare them only when the gateway sends them back.
+    if (gatewayCurrency && expectedCurrency && gatewayCurrency !== expectedCurrency) {
+      console.error('[Genie] Currency mismatch:', {
+        orderId: order._id,
+        expectedCurrency,
+        gatewayCurrency,
+      });
+      return order;
+    }
+
+    if (gatewayAmountMinor && expectedAmountMinor && gatewayAmountMinor !== expectedAmountMinor) {
+      console.error('[Genie] Amount mismatch:', {
+        orderId: order._id,
+        expectedAmountMinor,
+        gatewayAmountMinor,
+      });
+      return order;
+    }
+
+    // Atomic pending/failed -> paid transition prevents webhook and polling
+    // from reducing stock more than once for the same payment.
+    const updated = await Order.findOneAndUpdate({
+      _id: order._id,
+      'payment.status': { $ne: 'paid' },
+    }, {
       'payment.status': 'paid',
       'payment.paidAt': new Date(),
       'payment.transactionId': transactionId,
@@ -204,6 +270,10 @@ async function updateOrderFromGenieStatus(order, transactionData) {
       status: 'confirmed',
       $push: { statusHistory: { status: 'confirmed', note: `Payment confirmed via Dialog Genie (${status})` } },
     }, { new: true }).select('status payment orderNumber items');
+
+    if (!updated) {
+      return Order.findById(order._id).select('status payment orderNumber items');
+    }
 
     if (updated?.items?.length) {
       for (const item of updated.items) {
@@ -250,17 +320,27 @@ exports.createGeniePayment = asyncHandler(async (req, res) => {
     throw new Error('This order is already paid.');
   }
 
-  // Genie app currency is LKR. Checkout must send LKR amount.
-  if (String(order.pricing?.currency || 'LKR').toUpperCase() !== 'LKR') {
+  let checkoutCurrency;
+  try {
+    checkoutCurrency = normalizeCurrency(order.pricing?.currency || 'CAD');
+  } catch (err) {
     res.status(400);
-    throw new Error('Genie accepts this app in LKR only. Please checkout in LKR or use Bank Transfer.');
+    throw err;
   }
 
-  const amountLKR = Number(order.pricing.total || 0);
+  if (!SUPPORTED_CURRENCIES.has(checkoutCurrency)) {
+    res.status(400);
+    throw new Error(`Dialog Genie is not configured for ${checkoutCurrency}.`);
+  }
+
+  // The order total has already been verified by the server:
+  // - LKR comes from the separate manual priceLKR list.
+  // - Overseas currencies come from the CAD product price and the stored CAD
+  //   exchange-rate table. Do not convert it again here.
+  const amountMajor = Number(order.pricing.total || 0);
   let amountMinor;
   try {
-    // Genie expects the integer smallest unit. Example: LKR 8,450.00 -> 845000.
-    amountMinor = toMinorUnits(amountLKR, 2);
+    amountMinor = toCurrencyMinorUnits(amountMajor, checkoutCurrency);
   } catch {
     res.status(400);
     throw new Error('Invalid order amount for Genie payment.');
@@ -271,14 +351,14 @@ exports.createGeniePayment = asyncHandler(async (req, res) => {
 
   const payload = {
     amount: amountMinor,
-    currency: 'LKR',
+    currency: checkoutCurrency,
     redirectUrl: `${frontendUrl}/payment/genie/return?orderId=${order._id}`,
     webhook: `${backendUrl}/api/payments/genie/webhook`,
     localId: order._id.toString(),
     customerReference: order.orderNumber || order._id.toString(),
     billingDetails: getBillingDetails(order),
     expires: expiryIso(24),
-    signature: buildSignature(amountMinor, 'LKR'),
+    signature: buildSignature(amountMinor, checkoutCurrency),
     apiVersion: GENIE_API_VERSION,
     appVersion: GENIE_APP_VERSION,
     signMethod: GENIE_SIGN_METHOD,
@@ -287,9 +367,10 @@ exports.createGeniePayment = asyncHandler(async (req, res) => {
   const endpoint = `${getGenieBaseUrl()}/transactions`;
   console.log('[Genie] Creating transaction → POST', endpoint);
   console.log('[Genie] Payload preview:', {
-    amountMajorLKR: amountLKR,
+    amountMajor,
     amountMinor: payload.amount,
     currency: payload.currency,
+    fractionDigits: getCurrencyFractionDigits(checkoutCurrency),
     localId: payload.localId,
     customerReference: payload.customerReference,
     redirectUrl: payload.redirectUrl,
@@ -331,7 +412,7 @@ exports.createGeniePayment = asyncHandler(async (req, res) => {
       'payment.genieOrderId': transactionId,
       'payment.status': 'pending',
       'payment.gatewayAmountMinor': amountMinor,
-      'payment.gatewayCurrency': 'LKR',
+      'payment.gatewayCurrency': checkoutCurrency,
     });
 
     console.log('[Genie] ✅ Transaction created:', transactionId || '(no id)', '→', paymentUrl);
@@ -422,7 +503,8 @@ exports.pingGenie = asyncHandler(async (req, res) => {
     CREATE_TRANSACTION_ENDPOINT: `${baseUrl}/transactions`,
     GET_TRANSACTION_ENDPOINT: `${baseUrl}/transactions/{transactionId}`,
     AUTH_STYLE: 'Authorization header contains the Genie App Key directly. No Bearer prefix.',
-    AMOUNT_FORMAT: 'Integer smallest unit: LKR 8450.00 must be sent as 845000',
+    SUPPORTED_CHECKOUT_CURRENCIES: Array.from(SUPPORTED_CURRENCIES),
+    AMOUNT_FORMAT: 'Integer smallest unit. LKR/CAD/USD/GBP/AED use 2 decimals; JPY/KRW use 0 decimals.',
     SIGNATURE_FORMULA: 'sha1("amount=" + minorUnitAmount + "&currency=" + currency + "&apiKey=" + appKey)',
   });
 });

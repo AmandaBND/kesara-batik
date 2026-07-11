@@ -33,4 +33,25 @@ function roundMoney(amount, fractionDigits = 2) {
   return Math.round((numericAmount + Number.EPSILON) * multiplier) / multiplier;
 }
 
-module.exports = { toMinorUnits, roundMoney };
+/**
+ * ISO-style fraction digits used when an amount is sent to Genie.
+ *
+ * The existing LKR integration intentionally remains two-decimal, while JPY
+ * and KRW are zero-decimal currencies. All other checkout currencies in this
+ * project use two decimal places.
+ */
+function getCurrencyFractionDigits(currency) {
+  const code = String(currency || '').trim().toUpperCase();
+  return ['JPY', 'KRW'].includes(code) ? 0 : 2;
+}
+
+function toCurrencyMinorUnits(amount, currency) {
+  return toMinorUnits(amount, getCurrencyFractionDigits(currency));
+}
+
+module.exports = {
+  toMinorUnits,
+  toCurrencyMinorUnits,
+  getCurrencyFractionDigits,
+  roundMoney,
+};

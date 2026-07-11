@@ -21,10 +21,10 @@ const COUNTRIES = [
 export default function CheckoutPage() {
   const { items, clear } = useCartStore()
   const { user } = useAuthStore()
-  const { formatAmount, currency, rates, isFromSriLanka } = useCurrencyStore()
+  const { formatAmount, currency, rates } = useCurrencyStore()
   const navigate = useNavigate()
 
-  const genieAvailable = isFromSriLanka && currency === 'LKR'
+  const genieAvailable = ['CAD', 'USD', 'GBP', 'AED', 'LKR', 'JPY', 'KRW'].includes(currency)
   const [payMethod, setPayMethod] = useState(() => genieAvailable ? 'genie' : 'bank_transfer')
   const [loading,   setLoading]   = useState(false)
   const [validationError, setValidationError] = useState('')
@@ -82,7 +82,8 @@ export default function CheckoutPage() {
   }
 
   // Never convert an overseas price into the separate Sri Lankan price list.
-  // Genie is shown only when IP-based currency detection has locked checkout to LKR.
+  // LKR continues to use priceLKR, while every overseas checkout currency is
+  // derived from the product's CAD price using the current CAD exchange rate.
   const checkoutCurrency = currency || 'CAD'
   const checkoutSubtotal = getCartSubtotal(items, checkoutCurrency, rates)
   const checkoutShipping = getShipping(items, checkoutCurrency, rates)
@@ -117,7 +118,7 @@ export default function CheckoutPage() {
 
   // ── GENIE: create order → get Genie payment URL → redirect ──
   const handleGenieCheckout = async () => {
-    if (!genieAvailable) { toast.error('Dialog Genie is available only for Sri Lankan LKR checkout'); return }
+    if (!genieAvailable) { toast.error(`Dialog Genie is not available for ${checkoutCurrency}`); return }
     if (!addressComplete) { toast.error('Please complete your shipping address'); return }
     const validationMessage = validateAddress()
     if (validationMessage) {
@@ -276,7 +277,7 @@ export default function CheckoutPage() {
 
               {/* Method selector */}
               <div className={`grid ${genieAvailable ? 'grid-cols-2' : 'grid-cols-1'} gap-3 mb-6`}>
-                {/* Genie card — only for IP-locked Sri Lankan LKR checkout */}
+                {/* Genie card — available for every supported checkout currency */}
                 {genieAvailable && (
                   <button
                     onClick={() => setPayMethod('genie')}
@@ -309,7 +310,7 @@ export default function CheckoutPage() {
 
               {!genieAvailable && (
                 <p className="text-xs text-gray-500 mb-5">
-                  Dialog Genie uses the Sri Lankan LKR price list and is available only when your location is detected as Sri Lanka.
+                  Dialog Genie is not available for the selected checkout currency.
                 </p>
               )}
 
@@ -320,12 +321,19 @@ export default function CheckoutPage() {
                     <img src="/genie-logo.jpg" alt="Genie" className="h-7 rounded" />
                     <div>
                       <p className="text-sm font-bold text-deep">Pay with Dialog Genie</p>
-                      <p className="text-xs text-gray-500">Visa, Mastercard &amp; Genie Wallet accepted</p>
+                      <p className="text-xs text-gray-500">
+                        Pay securely in {checkoutCurrency} with Visa, Mastercard or Genie Wallet
+                      </p>
                     </div>
                   </div>
                   <ul className="text-xs text-gray-600 space-y-1">
                     <li>✅ Secure, encrypted payment hosted by Dialog Genie</li>
-                    <li>✅ Pay with any Visa / Mastercard or Genie Wallet balance</li>
+                    <li>✅ The gateway amount matches your displayed {checkoutCurrency} order total</li>
+                    {checkoutCurrency === 'LKR' ? (
+                      <li>✅ LKR continues to use the separate Sri Lankan product price list</li>
+                    ) : (
+                      <li>✅ This amount is calculated from each product’s CAD price and the current CAD exchange rate</li>
+                    )}
                     <li>✅ You'll be redirected to Genie's payment page</li>
                     <li>✅ Your order is confirmed instantly on payment success</li>
                   </ul>
