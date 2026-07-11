@@ -64,6 +64,21 @@ function buildOrderPricing({ subtotal, subtotalCAD, currency, rates = {} }) {
     ? null
     : getRate(normalizedCurrency, rates);
 
+  const totalCAD = roundMoney(safeSubtotalCAD + safeShippingCAD);
+
+  // For overseas orders only, save the CAD -> LKR rate used for the gateway
+  // settlement snapshot. This does not alter the customer's selected currency,
+  // item prices, order total, invoice or the separate Sri Lankan priceLKR list.
+  const overseasGatewaySnapshot = normalizedCurrency === 'LKR'
+    ? {}
+    : (() => {
+        const cadToLkrRate = getRate('LKR', rates);
+        return {
+          cadToLkrRate,
+          gatewayTotalLKR: roundMoney(totalCAD * cadToLkrRate),
+        };
+      })();
+
   return {
     subtotal: safeSubtotal,
     shipping: safeShipping,
@@ -72,13 +87,14 @@ function buildOrderPricing({ subtotal, subtotalCAD, currency, rates = {} }) {
     total: roundMoney(safeSubtotal + safeShipping),
     currency: normalizedCurrency,
 
-    // Independent CAD snapshot used only for overseas Genie payments.
+    // Independent CAD snapshot for overseas pricing and payment verification.
     // LKR pricing remains separate and never uses these values.
     baseCurrency: 'CAD',
     subtotalCAD: safeSubtotalCAD,
     shippingCAD: safeShippingCAD,
-    totalCAD: roundMoney(safeSubtotalCAD + safeShippingCAD),
+    totalCAD,
     exchangeRate,
+    ...overseasGatewaySnapshot,
   };
 }
 

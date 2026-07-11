@@ -91,17 +91,23 @@ export default function CheckoutPage() {
   const formatCheckoutAmount = (amount) =>
     checkoutCurrency === 'LKR' ? `LKR ${Number(amount).toFixed(2)}` : formatAmount(amount)
 
-  // Payment currencies intentionally stay separate:
-  // - Sri Lankan orders keep the existing LKR amount and LKR gateway flow.
-  // - Overseas orders remain displayed/stored in the user's selected currency,
-  //   while Genie charges the independent CAD base total from Product.price.
-  const genieChargeCurrency = checkoutCurrency === 'LKR' ? 'LKR' : 'CAD'
+  // Payment pricing stays separate:
+  // - Sri Lankan checkout keeps the existing manual LKR total unchanged.
+  // - Overseas checkout remains displayed and stored in the selected currency,
+  //   calculated from the CAD catalogue price and CAD exchange rates.
+  // - This Genie merchant account settles transactions in LKR, so only the
+  //   final independent CAD base total is converted to LKR for the gateway.
+  //   It does not use product.priceLKR for overseas orders.
+  const cadBaseTotal = getCartTotal(items, 'CAD', rates)
+  const cadToLkrRate = Number(rates?.LKR) || 0
+  const genieChargeCurrency = 'LKR'
   const genieChargeTotal = checkoutCurrency === 'LKR'
     ? checkoutTotal
-    : getCartTotal(items, 'CAD', rates)
-  const formatGenieAmount = (amount) => new Intl.NumberFormat('en-CA', {
+    : cadBaseTotal * cadToLkrRate
+
+  const formatGenieAmount = (amount) => new Intl.NumberFormat('en-LK', {
     style: 'currency',
-    currency: genieChargeCurrency,
+    currency: 'LKR',
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(Number(amount) || 0)
@@ -351,8 +357,9 @@ export default function CheckoutPage() {
                     ) : (
                       <>
                         <li>✅ Your order remains {formatCheckoutAmount(checkoutTotal)}</li>
-                        <li>✅ Genie will charge the independent CAD base total: {formatGenieAmount(genieChargeTotal)}</li>
-                        <li>✅ No overseas payment is converted through LKR</li>
+                        <li>✅ Overseas prices still come from the independent CAD catalogue</li>
+                        <li>✅ Genie will display the LKR gateway equivalent: {formatGenieAmount(genieChargeTotal)}</li>
+                        <li>✅ The overseas order does not use the separate product.priceLKR list</li>
                       </>
                     )}
                     <li>✅ You'll be redirected to Genie's payment page</li>

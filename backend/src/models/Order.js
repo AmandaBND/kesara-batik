@@ -47,6 +47,12 @@ const orderSchema = new mongoose.Schema(
       shippingCAD: Number,
       totalCAD: Number,
       exchangeRate: Number,
+
+      // Overseas checkout remains in its selected currency, but this merchant
+      // settles Genie transactions in LKR. These fields snapshot only that
+      // final CAD -> LKR gateway conversion.
+      cadToLkrRate: Number,
+      gatewayTotalLKR: Number,
     },
     payment: {
       method: {
@@ -62,7 +68,10 @@ const orderSchema = new mongoose.Schema(
       transactionId: String,   // Genie orderId stored here
       genieOrderId: String,
       gatewayAmountMinor: Number,
+      gatewayAmountMajor: Number,
       gatewayCurrency: String,
+      gatewayExchangeRate: Number,
+      gatewayBaseAmountCAD: Number,
       checkoutAmount: Number,
       checkoutCurrency: String,
       paidAt: Date,
