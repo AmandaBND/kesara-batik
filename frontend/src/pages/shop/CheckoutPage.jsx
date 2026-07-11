@@ -91,6 +91,21 @@ export default function CheckoutPage() {
   const formatCheckoutAmount = (amount) =>
     checkoutCurrency === 'LKR' ? `LKR ${Number(amount).toFixed(2)}` : formatAmount(amount)
 
+  // Payment currencies intentionally stay separate:
+  // - Sri Lankan orders keep the existing LKR amount and LKR gateway flow.
+  // - Overseas orders remain displayed/stored in the user's selected currency,
+  //   while Genie charges the independent CAD base total from Product.price.
+  const genieChargeCurrency = checkoutCurrency === 'LKR' ? 'LKR' : 'CAD'
+  const genieChargeTotal = checkoutCurrency === 'LKR'
+    ? checkoutTotal
+    : getCartTotal(items, 'CAD', rates)
+  const formatGenieAmount = (amount) => new Intl.NumberFormat('en-CA', {
+    style: 'currency',
+    currency: genieChargeCurrency,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(Number(amount) || 0)
+
   useEffect(() => {
     if (!genieAvailable && payMethod === 'genie') {
       setPayMethod('bank_transfer')
@@ -322,17 +337,23 @@ export default function CheckoutPage() {
                     <div>
                       <p className="text-sm font-bold text-deep">Pay with Dialog Genie</p>
                       <p className="text-xs text-gray-500">
-                        Pay securely in {checkoutCurrency} with Visa, Mastercard or Genie Wallet
+                        Pay securely in {genieChargeCurrency} with Visa, Mastercard or Genie Wallet
                       </p>
                     </div>
                   </div>
                   <ul className="text-xs text-gray-600 space-y-1">
                     <li>✅ Secure, encrypted payment hosted by Dialog Genie</li>
-                    <li>✅ The gateway amount matches your displayed {checkoutCurrency} order total</li>
                     {checkoutCurrency === 'LKR' ? (
-                      <li>✅ LKR continues to use the separate Sri Lankan product price list</li>
+                      <>
+                        <li>✅ LKR uses the separate Sri Lankan price list exactly as before</li>
+                        <li>✅ Genie will charge {formatGenieAmount(genieChargeTotal)}</li>
+                      </>
                     ) : (
-                      <li>✅ This amount is calculated from each product’s CAD price and the current CAD exchange rate</li>
+                      <>
+                        <li>✅ Your order remains {formatCheckoutAmount(checkoutTotal)}</li>
+                        <li>✅ Genie will charge the independent CAD base total: {formatGenieAmount(genieChargeTotal)}</li>
+                        <li>✅ No overseas payment is converted through LKR</li>
+                      </>
                     )}
                     <li>✅ You'll be redirected to Genie's payment page</li>
                     <li>✅ Your order is confirmed instantly on payment success</li>
@@ -387,7 +408,7 @@ export default function CheckoutPage() {
                 ) : payMethod === 'genie' ? (
                   <>
                     <img src="/genie-logo.jpg" alt="" className="h-5 rounded inline" />
-                    Pay {formatCheckoutAmount(checkoutTotal)} via Genie →
+                    Pay {formatGenieAmount(genieChargeTotal)} via Genie →
                   </>
                 ) : (
                   `Place Order · ${formatCheckoutAmount(checkoutTotal)}`

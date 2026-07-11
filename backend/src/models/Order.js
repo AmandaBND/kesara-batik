@@ -38,6 +38,15 @@ const orderSchema = new mongoose.Schema(
       couponCode: String,
       total: { type: Number, required: true },
       currency: { type: String, default: "CAD" },
+
+      // Server-verified CAD snapshot for overseas payments. The normal
+      // checkout currency/amount above remains unchanged for display,
+      // invoices and order history. LKR never uses these CAD fields.
+      baseCurrency: { type: String, default: "CAD" },
+      subtotalCAD: Number,
+      shippingCAD: Number,
+      totalCAD: Number,
+      exchangeRate: Number,
     },
     payment: {
       method: {
@@ -54,6 +63,8 @@ const orderSchema = new mongoose.Schema(
       genieOrderId: String,
       gatewayAmountMinor: Number,
       gatewayCurrency: String,
+      checkoutAmount: Number,
+      checkoutCurrency: String,
       paidAt: Date,
       refundedAt: Date,
       refundAmount: Number,

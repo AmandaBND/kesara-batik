@@ -43,17 +43,26 @@ function getProductUnitPrice(product, currency, rates = {}) {
   return cadPrice * getRate(currency, rates);
 }
 
+function calculateShippingCAD(subtotalCAD) {
+  return Number(subtotalCAD) > CAD_FREE_SHIPPING_THRESHOLD ? 0 : CAD_SHIPPING;
+}
+
 function calculateShipping(subtotalCAD, currency, rates = {}) {
   if (currency === 'LKR') return LKR_SHIPPING;
-  if (Number(subtotalCAD) > CAD_FREE_SHIPPING_THRESHOLD) return 0;
-  return CAD_SHIPPING * getRate(currency, rates);
+  return calculateShippingCAD(subtotalCAD) * getRate(currency, rates);
 }
 
 function buildOrderPricing({ subtotal, subtotalCAD, currency, rates = {} }) {
   const normalizedCurrency = normalizeCurrency(currency);
   const shipping = calculateShipping(subtotalCAD, normalizedCurrency, rates);
+  const shippingCAD = calculateShippingCAD(subtotalCAD);
   const safeSubtotal = roundMoney(subtotal);
   const safeShipping = roundMoney(shipping);
+  const safeSubtotalCAD = roundMoney(subtotalCAD);
+  const safeShippingCAD = roundMoney(shippingCAD);
+  const exchangeRate = normalizedCurrency === 'LKR'
+    ? null
+    : getRate(normalizedCurrency, rates);
 
   return {
     subtotal: safeSubtotal,
@@ -62,6 +71,14 @@ function buildOrderPricing({ subtotal, subtotalCAD, currency, rates = {} }) {
     discount: 0,
     total: roundMoney(safeSubtotal + safeShipping),
     currency: normalizedCurrency,
+
+    // Independent CAD snapshot used only for overseas Genie payments.
+    // LKR pricing remains separate and never uses these values.
+    baseCurrency: 'CAD',
+    subtotalCAD: safeSubtotalCAD,
+    shippingCAD: safeShippingCAD,
+    totalCAD: roundMoney(safeSubtotalCAD + safeShippingCAD),
+    exchangeRate,
   };
 }
 
@@ -72,6 +89,7 @@ module.exports = {
   SUPPORTED_CURRENCIES,
   normalizeCurrency,
   getProductUnitPrice,
+  calculateShippingCAD,
   calculateShipping,
   buildOrderPricing,
 };

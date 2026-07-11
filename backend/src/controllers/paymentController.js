@@ -2,14 +2,12 @@ const crypto = require('crypto');
 const asyncHandler = require('express-async-handler');
 const Order = require('../models/Order');
 const Product = require('../models/Product');
-const {
-  toCurrencyMinorUnits,
-  getCurrencyFractionDigits,
-} = require('../utils/money');
+const { toCurrencyMinorUnits } = require('../utils/money');
 const {
   normalizeCurrency,
   SUPPORTED_CURRENCIES,
 } = require('../utils/orderPricing');
+const { resolveGenieCharge } = require('../utils/geniePricing');
 const { applyStockChangeForOrderItem } = require('../utils/stock');
 
 // ═══════════════════════════════════════════════════════════
@@ -183,11 +181,22 @@ function isFailedStatus(status) {
 }
 
 function genieErrorMessage(httpStatus, bodyText = '') {
+  const lower = String(bodyText || '').toLowerCase();
+
   if (httpStatus === 401 || httpStatus === 403) {
-    return 'Genie payment credentials/app access error. Check API Key, application domain, and whether the app is enabled for production payments.';
+    return 'Genie payment credentials/app access error. Check the API key, approved domain, production status and merchant application permissions.';
   }
   if (httpStatus === 404) {
     return 'Genie Transaction API endpoint not found. Check GENIE_API_BASE and use the /public/transactions endpoint.';
+  }
+  if (
+    lower.includes('currency') ||
+    lower.includes('dcc') ||
+    lower.includes('multi currency') ||
+    lower.includes('multi-currency') ||
+    lower.includes('merchant currency')
+  ) {
+    return 'Genie rejected the CAD payment currency for this merchant application. LKR remains unchanged, but overseas payments require CAD / Multi-Currency Pricing to be enabled on the Dialog Pay Business merchant account.';
   }
   if (httpStatus >= 500) {
     return 'Genie payment service is temporarily unavailable. Please use Bank Transfer (HNB) to complete your order.';
@@ -333,14 +342,25 @@ exports.createGeniePayment = asyncHandler(async (req, res) => {
     throw new Error(`Dialog Genie is not configured for ${checkoutCurrency}.`);
   }
 
-  // The order total has already been verified by the server:
-  // - LKR comes from the separate manual priceLKR list.
-  // - Overseas currencies come from the CAD product price and the stored CAD
-  //   exchange-rate table. Do not convert it again here.
-  const amountMajor = Number(order.pricing.total || 0);
+  // IMPORTANT — keep the two price systems separate:
+  // - LKR checkout: charge the existing manually maintained LKR total in LKR.
+  // - Overseas checkout: preserve the selected display/order currency, but
+  //   charge Genie in CAD using the server-saved CAD base total. This avoids
+  //   sending unsupported site currencies such as AED, JPY or KRW to Genie
+  //   and never converts an overseas order through LKR.
+  let genieCharge;
+  try {
+    genieCharge = resolveGenieCharge(order.pricing || {});
+  } catch (err) {
+    res.status(400);
+    throw err;
+  }
+
+  const amountMajor = genieCharge.gatewayAmountMajor;
+  const gatewayCurrency = genieCharge.gatewayCurrency;
   let amountMinor;
   try {
-    amountMinor = toCurrencyMinorUnits(amountMajor, checkoutCurrency);
+    amountMinor = toCurrencyMinorUnits(amountMajor, gatewayCurrency);
   } catch {
     res.status(400);
     throw new Error('Invalid order amount for Genie payment.');
@@ -351,14 +371,14 @@ exports.createGeniePayment = asyncHandler(async (req, res) => {
 
   const payload = {
     amount: amountMinor,
-    currency: checkoutCurrency,
+    currency: gatewayCurrency,
     redirectUrl: `${frontendUrl}/payment/genie/return?orderId=${order._id}`,
     webhook: `${backendUrl}/api/payments/genie/webhook`,
     localId: order._id.toString(),
     customerReference: order.orderNumber || order._id.toString(),
     billingDetails: getBillingDetails(order),
     expires: expiryIso(24),
-    signature: buildSignature(amountMinor, checkoutCurrency),
+    signature: buildSignature(amountMinor, gatewayCurrency),
     apiVersion: GENIE_API_VERSION,
     appVersion: GENIE_APP_VERSION,
     signMethod: GENIE_SIGN_METHOD,
@@ -367,10 +387,12 @@ exports.createGeniePayment = asyncHandler(async (req, res) => {
   const endpoint = `${getGenieBaseUrl()}/transactions`;
   console.log('[Genie] Creating transaction → POST', endpoint);
   console.log('[Genie] Payload preview:', {
-    amountMajor,
-    amountMinor: payload.amount,
-    currency: payload.currency,
-    fractionDigits: getCurrencyFractionDigits(checkoutCurrency),
+    checkoutAmount: genieCharge.checkoutAmount,
+    checkoutCurrency: genieCharge.checkoutCurrency,
+    gatewayAmountMajor: amountMajor,
+    gatewayAmountMinor: payload.amount,
+    gatewayCurrency: payload.currency,
+    usesCadBase: genieCharge.usesCadBase,
     localId: payload.localId,
     customerReference: payload.customerReference,
     redirectUrl: payload.redirectUrl,
@@ -412,11 +434,20 @@ exports.createGeniePayment = asyncHandler(async (req, res) => {
       'payment.genieOrderId': transactionId,
       'payment.status': 'pending',
       'payment.gatewayAmountMinor': amountMinor,
-      'payment.gatewayCurrency': checkoutCurrency,
+      'payment.gatewayCurrency': gatewayCurrency,
+      'payment.checkoutAmount': genieCharge.checkoutAmount,
+      'payment.checkoutCurrency': genieCharge.checkoutCurrency,
     });
 
     console.log('[Genie] ✅ Transaction created:', transactionId || '(no id)', '→', paymentUrl);
-    res.json({ paymentUrl, transactionId });
+    res.json({
+      paymentUrl,
+      transactionId,
+      gatewayCurrency,
+      gatewayAmount: amountMajor,
+      checkoutCurrency: genieCharge.checkoutCurrency,
+      checkoutAmount: genieCharge.checkoutAmount,
+    });
   } catch (err) {
     if (res.headersSent) return;
     console.error('[Genie] Error:', err.message, '| HTTP:', httpStatus, '| Body:', responseText.slice(0, 300));
@@ -504,7 +535,9 @@ exports.pingGenie = asyncHandler(async (req, res) => {
     GET_TRANSACTION_ENDPOINT: `${baseUrl}/transactions/{transactionId}`,
     AUTH_STYLE: 'Authorization header contains the Genie App Key directly. No Bearer prefix.',
     SUPPORTED_CHECKOUT_CURRENCIES: Array.from(SUPPORTED_CURRENCIES),
-    AMOUNT_FORMAT: 'Integer smallest unit. LKR/CAD/USD/GBP/AED use 2 decimals; JPY/KRW use 0 decimals.',
-    SIGNATURE_FORMULA: 'sha1("amount=" + minorUnitAmount + "&currency=" + currency + "&apiKey=" + appKey)',
+    PAYMENT_CURRENCY_RULE: 'LKR checkout -> LKR. Every overseas checkout -> CAD base total. No overseas payment is converted through LKR.',
+    AMOUNT_FORMAT: 'Integer smallest unit. LKR 8450.00 -> 845000; CAD 52.74 -> 5274.',
+    MCP_NOTE: 'The Genie merchant application must be enabled for CAD/Multi-Currency Pricing (Tourism Plan) for overseas payments.',
+    SIGNATURE_FORMULA: 'sha1("amount=" + minorUnitAmount + "&currency=" + gatewayCurrency + "&apiKey=" + appKey)',
   });
 });

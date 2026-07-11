@@ -17,7 +17,6 @@ import Seo from '../../components/common/Seo'
 import api from '../../utils/api'
 
 import heroPeacockSaree from '../../assets/home/hero-peacock-saree1.png'
-import homePageText from '../../assets/home/home_page_text.png'
 
 import womenCategoryImage from '../../assets/categories/women.jpeg'
 import menCategoryImage from '../../assets/categories/men.jpeg'
@@ -245,31 +244,17 @@ export default function HomePage() {
                 Authentic Sri Lankan Craftsmanship
               </p>
 
-              {/* Hero title */}
-              <h1 className="mb-4">
-                {/* Accessible heading text for SEO and screen readers */}
-                <span className="sr-only">
-                  කේසර බතික් Fashion
-                </span>
+              <h1 className="mb-4 font-display text-5xl font-bold leading-tight text-white lg:text-6xl">
+                කේසර
+                <br />
 
-                {/* Sinhala title image */}
-                <span
-                  aria-hidden="true"
-                  className="relative block aspect-[1009/734] w-[205px] overflow-hidden sm:w-[220px] lg:w-[235px] xl:w-[245px]"
-                >
-                  <img
-                    src={homePageText}
-                    alt=""
-                    className="absolute left-[-12.1%] top-[-30.7%] block w-[124.2%] max-w-none select-none"
-                    draggable="false"
-                  />
-                </span>
+                <em className="not-italic text-gold">
+                  බතික්
+                </em>
 
-                {/* English title */}
-                <span
-                  aria-hidden="true"
-                  className="mt-1 block font-display text-3xl font-bold leading-tight text-white lg:text-4xl"
-                >
+                <br />
+
+                <span className="text-3xl lg:text-4xl">
                   Fashion
                 </span>
               </h1>
@@ -395,9 +380,9 @@ export default function HomePage() {
             >
               <Link
                 to={category.href}
-                className="group block overflow-hidden rounded-[1.75rem] border border-gold/15 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+                className="group block rounded-[1.75rem] border border-gold/15 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
               >
-                <div className="relative aspect-[4/5] overflow-hidden">
+                <div className="relative aspect-[4/5]">
                   <img
                     src={category.image}
                     alt={`${category.name} batik collection`}
