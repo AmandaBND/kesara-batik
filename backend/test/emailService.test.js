@@ -142,3 +142,70 @@ test('production does not auto-use blocked SMTP when the API key is missing', ()
     restoreEnv(previousEnv);
   }
 });
+
+test('payment-success customer email uses the dedicated subject and template', async () => {
+  const previousEnv = snapshotEnv();
+  const previousFetch = global.fetch;
+  let payload;
+
+  process.env.BREVO_API_KEY = 'test-api-key';
+  process.env.EMAIL_FROM = 'orders@kesarabathik.com';
+  process.env.EMAIL_FROM_NAME = 'Kesara Bathik';
+
+  global.fetch = async (_url, options) => {
+    payload = JSON.parse(options.body);
+    return {
+      ok: true,
+      status: 201,
+      text: async () => JSON.stringify({ messageId: '<payment-success-message-id>' }),
+    };
+  };
+
+  const order = {
+    _id: '507f1f77bcf86cd799439011',
+    orderNumber: 'KB01003',
+    shippingAddress: {
+      fullName: 'Test Customer',
+      email: 'customer@example.com',
+      address: '12 Test Road',
+      city: 'Colombo',
+      country: 'Sri Lanka',
+    },
+    pricing: {
+      subtotal: 8000,
+      shipping: 450,
+      total: 8450,
+      currency: 'LKR',
+    },
+    payment: {
+      method: 'genie',
+      status: 'paid',
+      transactionId: 'genie-transaction-123',
+      gatewayAmountMajor: 8450,
+      gatewayCurrency: 'LKR',
+      paidAt: new Date('2026-07-14T05:25:26.000Z'),
+    },
+    items: [{
+      name: 'Batik Saree',
+      price: 8000,
+      quantity: 1,
+      image: 'https://example.com/saree.jpg',
+      variant: { color: 'Pink & Black' },
+    }],
+  };
+
+  try {
+    const { sendPaymentSuccessEmail } = loadEmailService();
+    const result = await sendPaymentSuccessEmail(order, 'customer');
+
+    assert.equal(result.ok, true);
+    assert.equal(payload.subject, 'Payment Successful — Order #KB01003 | Kesara Bathik');
+    assert.deepEqual(payload.to, [{ email: 'customer@example.com' }]);
+    assert.match(payload.htmlContent, /Payment successful/i);
+    assert.match(payload.htmlContent, /genie-transaction-123/);
+    assert.match(payload.htmlContent, /Rs\. 8,450\.00/);
+  } finally {
+    global.fetch = previousFetch;
+    restoreEnv(previousEnv);
+  }
+});

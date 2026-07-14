@@ -10,6 +10,7 @@ const {
 const { resolveGenieCharge } = require('../utils/geniePricing');
 const { getExchangeRates, DEFAULT_RATES } = require('../services/exchangeRateService');
 const { applyStockChangeForOrderItem } = require('../utils/stock');
+const { sendPaymentSuccessEmail } = require('../services/emailService');
 
 // ═══════════════════════════════════════════════════════════
 //  DIALOG GENIE BUSINESS — Transaction API V2
@@ -19,6 +20,89 @@ const { applyStockChangeForOrderItem } = require('../utils/stock');
 const GENIE_APP_VERSION = 'geniebiz-connect-js';
 const GENIE_API_VERSION = '2.0';
 const GENIE_SIGN_METHOD = 'sha1';
+
+const PAYMENT_EMAIL_STALE_MS = 5 * 60 * 1000;
+const PAYMENT_EMAIL_RECIPIENTS = ['customer', 'admin'];
+
+async function claimPaymentSuccessEmail(orderId, recipientType) {
+  const basePath = `emailNotifications.paymentSuccess.${recipientType}`;
+  const statusPath = `${basePath}.status`;
+  const attemptPath = `${basePath}.lastAttemptAt`;
+  const staleBefore = new Date(Date.now() - PAYMENT_EMAIL_STALE_MS);
+  const now = new Date();
+
+  return Order.findOneAndUpdate({
+    _id: orderId,
+    'payment.status': 'paid',
+    $or: [
+      { [statusPath]: { $exists: false } },
+      { [statusPath]: { $in: ['pending', 'failed'] } },
+      {
+        [statusPath]: 'sending',
+        [attemptPath]: { $lt: staleBefore },
+      },
+    ],
+  }, {
+    $set: {
+      [statusPath]: 'sending',
+      [attemptPath]: now,
+      [`${basePath}.error`]: '',
+    },
+  }, { new: true }).populate('user', 'name email');
+}
+
+async function completePaymentSuccessEmail(orderId, recipientType, result) {
+  const basePath = `emailNotifications.paymentSuccess.${recipientType}`;
+  const missingRecipient = result?.skipped
+    && ['missing-customer-email', 'missing-admin-email'].includes(result.reason);
+  const sent = result?.ok === true;
+  const finalStatus = sent ? 'sent' : missingRecipient ? 'skipped' : 'failed';
+  const update = {
+    [`${basePath}.status`]: finalStatus,
+    [`${basePath}.error`]: sent ? '' : String(result?.error || result?.reason || 'Email delivery failed').slice(0, 500),
+  };
+
+  if (sent) update[`${basePath}.sentAt`] = new Date();
+
+  await Order.updateOne({ _id: orderId }, { $set: update });
+}
+
+async function dispatchPaymentSuccessEmails(orderId) {
+  for (const recipientType of PAYMENT_EMAIL_RECIPIENTS) {
+    try {
+      const claimedOrder = await claimPaymentSuccessEmail(orderId, recipientType);
+      if (!claimedOrder) continue;
+
+      const result = await sendPaymentSuccessEmail(claimedOrder, recipientType);
+      await completePaymentSuccessEmail(orderId, recipientType, result);
+
+      if (result?.ok) {
+        console.log(`[email] Payment-success ${recipientType} email completed for order ${claimedOrder.orderNumber}`);
+      } else if (result?.skipped) {
+        console.warn(`[email] Payment-success ${recipientType} email skipped for order ${claimedOrder.orderNumber}: ${result.reason}`);
+      } else {
+        console.error(`[email] Payment-success ${recipientType} email failed for order ${claimedOrder.orderNumber}: ${result?.error || 'unknown error'}`);
+      }
+    } catch (error) {
+      console.error(`[email] Payment-success ${recipientType} dispatch error for order ${orderId}: ${error.message}`);
+      const basePath = `emailNotifications.paymentSuccess.${recipientType}`;
+      await Order.updateOne({ _id: orderId }, {
+        $set: {
+          [`${basePath}.status`]: 'failed',
+          [`${basePath}.error`]: String(error.message || error).slice(0, 500),
+        },
+      }).catch(() => {});
+    }
+  }
+}
+
+function queuePaymentSuccessEmails(orderId) {
+  setImmediate(() => {
+    dispatchPaymentSuccessEmails(orderId).catch((error) => {
+      console.error(`[email] Payment-success background dispatch failed for order ${orderId}: ${error.message}`);
+    });
+  });
+}
 
 function getGenieApiKey() {
   // Keep GENIE_API_SECRET support because this project already uses that name.
@@ -282,7 +366,11 @@ async function updateOrderFromGenieStatus(order, transactionData) {
     }, { new: true }).select('status payment orderNumber items');
 
     if (!updated) {
-      return Order.findById(order._id).select('status payment orderNumber items');
+      const alreadyPaid = await Order.findById(order._id).select('status payment orderNumber items');
+      // If a previous email attempt failed or the server restarted mid-send,
+      // a later webhook/status check safely retries only the unsent recipient.
+      queuePaymentSuccessEmails(order._id);
+      return alreadyPaid;
     }
 
     if (updated?.items?.length) {
@@ -293,6 +381,10 @@ async function updateOrderFromGenieStatus(order, transactionData) {
         await product.save();
       }
     }
+
+    // Email delivery is intentionally decoupled from payment confirmation.
+    // A Brevo error must never roll back a valid payment or delay the response.
+    queuePaymentSuccessEmails(updated._id);
 
     return updated;
   }
@@ -532,6 +624,13 @@ exports.getGeniePaymentStatus = asyncHandler(async (req, res) => {
     if (transactionData) {
       order = await updateOrderFromGenieStatus(order, transactionData);
     }
+  }
+
+  // Also covers orders that became paid just before a deployment or whose
+  // earlier Brevo delivery failed. The atomic notification claim makes this
+  // safe to call on every paid-status check without duplicate emails.
+  if (order.payment?.status === 'paid') {
+    queuePaymentSuccessEmails(order._id);
   }
 
   res.json({
