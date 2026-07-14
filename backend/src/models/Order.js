@@ -1,5 +1,16 @@
 const mongoose = require("mongoose");
 
+const emailNotificationSchema = new mongoose.Schema({
+  status: {
+    type: String,
+    enum: ['pending', 'sending', 'sent', 'failed', 'skipped'],
+    default: 'pending',
+  },
+  lastAttemptAt: Date,
+  sentAt: Date,
+  error: String,
+}, { _id: false });
+
 const orderItemSchema = new mongoose.Schema({
   product: {
     type: mongoose.Schema.Types.ObjectId,
@@ -100,6 +111,12 @@ const orderSchema = new mongoose.Schema(
         updatedAt: { type: Date, default: Date.now },
       },
     ],
+    emailNotifications: {
+      paymentSuccess: {
+        customer: { type: emailNotificationSchema, default: () => ({}) },
+        admin: { type: emailNotificationSchema, default: () => ({}) },
+      },
+    },
     trackingNumber: String,
     courier: String,
     estimatedDelivery: Date,

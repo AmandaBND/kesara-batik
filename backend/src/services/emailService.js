@@ -1,5 +1,6 @@
 const nodemailer = require('nodemailer');
 const { buildOrderEmail, buildShippingEmail } = require('../templates/orderInvoiceEmail');
+const { buildPaymentSuccessEmail } = require('../templates/paymentSuccessEmail');
 
 const BREVO_EMAIL_API_URL = 'https://api.brevo.com/v3/smtp/email';
 const DEFAULT_TIMEOUT_MS = 15000;
@@ -293,11 +294,14 @@ async function sendOrderInvoiceEmails(order) {
     || order.user?.email;
   const adminEmail = process.env.ADMIN_EMAIL;
   const tasks = [];
+  const isPaid = order.payment?.status === 'paid';
 
   if (customerEmail) {
     tasks.push(sendEmail({
       to: customerEmail,
-      subject: `Order Confirmed — #${order.orderNumber} | Kesara Bathik`,
+      subject: isPaid
+        ? `Order Confirmed — #${order.orderNumber} | Kesara Bathik`
+        : `Order Received — Payment Pending — #${order.orderNumber} | Kesara Bathik`,
       html: buildOrderEmail({ order, recipientType: 'customer' }),
     }));
   } else {
@@ -307,7 +311,7 @@ async function sendOrderInvoiceEmails(order) {
   if (adminEmail) {
     tasks.push(sendEmail({
       to: adminEmail,
-      subject: `New Order #${order.orderNumber} — ${order.shippingAddress?.fullName || 'Guest'} (${order.pricing?.currency || 'LKR'} ${Number(order.pricing?.total || 0).toFixed(2)})`,
+      subject: `${isPaid ? 'New Paid Order' : 'New Order — Payment Pending'} #${order.orderNumber} — ${order.shippingAddress?.fullName || 'Guest'} (${order.pricing?.currency || 'LKR'} ${Number(order.pricing?.total || 0).toFixed(2)})`,
       html: buildOrderEmail({ order, recipientType: 'admin' }),
       replyTo: customerEmail || undefined,
     }));
@@ -316,6 +320,33 @@ async function sendOrderInvoiceEmails(order) {
   }
 
   return Promise.allSettled(tasks);
+}
+
+async function sendPaymentSuccessEmail(order, recipientType = 'customer') {
+  const customerEmail = order.shippingAddress?.email
+    || order.guestEmail
+    || order.user?.email;
+  const adminEmail = clean(process.env.ADMIN_EMAIL);
+  const isAdmin = recipientType === 'admin';
+  const recipient = isAdmin ? adminEmail : customerEmail;
+
+  if (!recipient) {
+    const reason = isAdmin ? 'missing-admin-email' : 'missing-customer-email';
+    console.warn(`[email] Order ${order.orderNumber}: ${reason}, skipping payment success email`);
+    return { ok: false, skipped: true, reason };
+  }
+
+  const checkoutCurrency = order.pricing?.currency || order.payment?.checkoutCurrency || 'LKR';
+  const checkoutAmount = Number(order.pricing?.total ?? order.payment?.checkoutAmount ?? 0);
+
+  return sendEmail({
+    to: recipient,
+    subject: isAdmin
+      ? `Payment Received — Order #${order.orderNumber} — ${checkoutCurrency} ${checkoutAmount.toFixed(2)}`
+      : `Payment Successful — Order #${order.orderNumber} | Kesara Bathik`,
+    html: buildPaymentSuccessEmail({ order, recipientType }),
+    ...(isAdmin && customerEmail ? { replyTo: customerEmail } : {}),
+  });
 }
 
 async function sendShippingUpdateEmail(order) {
@@ -340,6 +371,7 @@ async function sendShippingUpdateEmail(order) {
 module.exports = {
   sendEmail,
   sendOrderInvoiceEmails,
+  sendPaymentSuccessEmail,
   sendShippingUpdateEmail,
   logEmailConfiguration,
   getEmailProvider,

@@ -204,6 +204,14 @@ function buildCustomerInvoiceEmail(order) {
     year: 'numeric', month: 'long', day: 'numeric',
   });
   const payMethod = (order.payment?.method || '-').replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
+  const isPaid = order.payment?.status === 'paid';
+  const isGenie = order.payment?.method === 'genie';
+  const greetingTitle = isPaid ? 'Thank you for your order!' : 'Your order has been received';
+  const greetingMessage = isPaid
+    ? `Hi <strong>${esc(customerName)}</strong>, your order is confirmed and our artisans are getting it ready with care. You'll receive another email once it's shipped.`
+    : isGenie
+      ? `Hi <strong>${esc(customerName)}</strong>, we have reserved your order details. Please complete the Dialog Genie payment to confirm the order. We will send a separate payment-success email after Genie verifies the payment.`
+      : `Hi <strong>${esc(customerName)}</strong>, we have received your order. Payment is still pending and the order will be confirmed after the payment is verified.`;
 
   const body = `
   ${header()}
@@ -215,11 +223,10 @@ function buildCustomerInvoiceEmail(order) {
     <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
       <tr><td style="padding-bottom:24px;border-bottom:1px solid #f0ece4;">
         <div style="font-size:24px;font-weight:800;color:#2b2014;margin-bottom:6px;">
-          Thank you for your order! 🎉
+          ${greetingTitle}
         </div>
         <p style="color:#666;font-size:14px;line-height:1.6;margin:0;">
-          Hi <strong>${esc(customerName)}</strong>, we've received your order and our artisans are
-          getting it ready with care. You'll receive another email once it's shipped.
+          ${greetingMessage}
         </p>
       </td></tr>
     </table>
