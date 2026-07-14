@@ -6,6 +6,7 @@ const dotenv = require("dotenv");
 const rateLimit = require("express-rate-limit");
 const cron = require("node-cron");
 const connectDB = require("./config/db");
+const { logEmailConfiguration } = require("./services/emailService");
 
 dotenv.config();
 connectDB();
@@ -101,8 +102,9 @@ cron.schedule("0 * * * *", async () => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () =>
-  console.log(`🦁 Kesara Batik Server running on port ${PORT}`),
-);
+app.listen(PORT, () => {
+  console.log(`🦁 Kesara Batik Server running on port ${PORT}`);
+  logEmailConfiguration();
+});
 
 module.exports = app;

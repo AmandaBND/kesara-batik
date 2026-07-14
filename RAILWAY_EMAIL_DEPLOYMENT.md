@@ -1,130 +1,74 @@
-# Kesara Bathik — Railway Deployment & Brevo Email Setup Guide
+# Kesara Bathik — Railway & Brevo Email Setup
 
-## ✅ What is already done
-- Domain `kesarabathik.com` authenticated in Brevo (DKIM 1 ✅ DKIM 2 ✅ DMARC ✅)
-- Email templates coded (customer invoice + admin notification + shipping update)
-- Email fires automatically on every new order and every shipment
+## Why SMTP timed out
 
----
+Railway disables outbound SMTP on Free, Trial, and Hobby plans. The application
+therefore sends transactional email through Brevo's HTTPS API. SMTP remains only
+as a fallback for local development or Railway Pro plans.
 
-## Step 1 — Set Environment Variables in Railway
+## Required Railway variables
 
-Go to your Railway project → select the **backend service** → click **Variables**.
+Add these in **Railway → backend service → Variables**:
 
-Add these variables one by one:
+| Variable | Value |
+|---|---|
+| `EMAIL_PROVIDER` | `api` |
+| `BREVO_API_KEY` | Brevo API key created under Settings → SMTP & API → API Keys |
+| `EMAIL_FROM` | `orders@kesarabathik.com` |
+| `EMAIL_FROM_NAME` | `Kesara Bathik` |
+| `ADMIN_EMAIL` | The inbox that should receive new-order notifications |
+| `EMAIL_SEND_TIMEOUT_MS` | `15000` (optional) |
+
+The sender/domain must be authenticated in Brevo. Do not use an SMTP key as
+`BREVO_API_KEY`; they are different credentials.
+
+## Optional SMTP fallback
+
+These are optional and are used only when `BREVO_API_KEY` is absent:
 
 | Variable | Value |
 |---|---|
 | `BREVO_SMTP_HOST` | `smtp-relay.brevo.com` |
 | `BREVO_SMTP_PORT` | `587` |
-| `BREVO_SMTP_LOGIN` | `b07266001@smtp-brevo.com` |
-| `BREVO_SMTP_PASSWORD` | *(your Brevo SMTP password — from Brevo → Settings → SMTP & API → SMTP tab → the Password field)* |
-| `EMAIL_FROM` | `orders@kesarabathik.com` |
-| `EMAIL_FROM_NAME` | `Kesara Bathik` |
-| `ADMIN_EMAIL` | *(your personal Gmail or inbox you check daily, e.g. `yourname@gmail.com`)* |
+| `BREVO_SMTP_LOGIN` | Your Brevo SMTP login |
+| `BREVO_SMTP_PASSWORD` | Your Brevo SMTP key |
 
-> ⚠️ `EMAIL_FROM` must end in `@kesarabathik.com` because that is the domain
-> you authenticated in Brevo. Using any other domain will cause emails to be
-> rejected or land in spam.
+## Create the Brevo API key
 
----
+1. Sign in to Brevo.
+2. Open **Settings → SMTP & API → API Keys**.
+3. Create a new API key named `Kesara Bathik Railway`.
+4. Copy it once and add it to Railway as `BREVO_API_KEY`.
+5. Redeploy the backend.
 
-## Step 2 — Deploy the Backend
+## Expected Railway logs
 
-Railway auto-deploys when you push to GitHub. If your repo is connected:
+At startup:
+
+```text
+[email] Provider: Brevo HTTPS API | Sender: orders@kesarabathik.com
+```
+
+After an order:
+
+```text
+[email] ✅ Sent via brevo-api "Order Confirmed — #KB01001 | Kesara Bathik" → customer@example.com
+[email] ✅ Sent via brevo-api "New Order #KB01001 — ..." → admin@example.com
+```
+
+## Security
+
+Never commit API keys, SMTP keys, passwords, or `.env` files. If a key is shown
+in a screenshot, chat, issue, or repository, revoke it immediately in Brevo and
+create a replacement.
+
+## Optional manual test
+
+From a local terminal with the backend environment loaded, run:
 
 ```bash
-git add .
-git commit -m "feat: brevo email — invoice + shipping notifications"
-git push
+npm run email:test -- your@email.com
 ```
 
-If you are deploying manually, drag the `/backend` folder into Railway or
-use the Railway CLI:
-
-```bash
-railway up --service kesara-batik-backend
-```
-
----
-
-## Step 3 — Verify Emails are Working
-
-### Option A: Place a real test order
-1. Go to `https://www.kesarabathik.com`
-2. Add any product to cart → proceed to checkout → place an order
-3. Check your `ADMIN_EMAIL` inbox — you should receive the admin notification within 30 seconds
-4. Check the email address entered at checkout — the customer invoice should arrive
-
-### Option B: Check Railway logs
-In Railway → your backend service → **Deployments** → click the latest deployment → **Logs**.
-
-Look for lines like:
-```
-[email] ✅ Sent "Order Confirmed — #KB01001" → customer@email.com
-[email] ✅ Sent "🛍️ New Order #KB01001 — ..." → your_admin@gmail.com
-```
-
-If you see `❌ Failed` lines, check that the `BREVO_SMTP_PASSWORD` is correct.
-
----
-
-## Step 4 — Test Shipping Email
-
-1. Log in as admin at `https://www.kesarabathik.com/admin`
-2. Find any order → change its status to **Shipped**
-3. (Optionally enter a tracking number and courier name before saving)
-4. The customer will automatically receive the shipping update email
-
----
-
-## How Emails Are Triggered
-
-| Event | Who gets emailed | Template |
-|---|---|---|
-| Customer places an order | **Customer** (order confirmation + invoice) | `orderInvoiceEmail.js → buildCustomerInvoiceEmail` |
-| Customer places an order | **Admin** (new order notification) | `orderInvoiceEmail.js → buildAdminOrderEmail` |
-| Admin marks order as **Shipped** | **Customer** (shipping update + tracking) | `orderInvoiceEmail.js → buildShippingEmail` |
-
----
-
-## Sender Address Setup in Brevo (one-time, if not done yet)
-
-1. Go to **Brevo → Settings → Senders, Domains, IPs → Senders tab**
-2. Click **Add a new sender**
-3. Set:
-   - **Name:** `Kesara Bathik`
-   - **Email:** `orders@kesarabathik.com`
-4. Save. No verification email required because `kesarabathik.com` is already
-   authenticated as a domain.
-
----
-
-## Troubleshooting
-
-### Emails not arriving
-- Check Railway logs for `[email]` lines
-- Confirm `BREVO_SMTP_PASSWORD` matches exactly what is shown in Brevo → SMTP & API
-- Confirm `EMAIL_FROM` ends in `@kesarabathik.com`
-
-### Emails landing in spam
-- Your domain's DKIM and DMARC are already verified — this should not happen
-- Make sure `EMAIL_FROM` is `orders@kesarabathik.com`, not a Gmail or other address
-- Check Brevo → **Deliverability Centre** for any bounce/block reports
-
-### "Authentication failed" error in logs
-- The SMTP password in Brevo can be regenerated: **Brevo → Settings → SMTP & API → Generate a new SMTP key**
-- Update `BREVO_SMTP_PASSWORD` in Railway after regenerating
-
----
-
-## Brevo Free Plan Limits
-
-The Brevo free plan includes **300 emails/day**. For a new store this is
-plenty. If you grow past ~300 orders/day, upgrade to the Starter plan.
-Each order sends 2 emails (customer + admin), so the limit effectively covers
-~150 orders/day on the free tier.
-
----
-
-*Last updated: $(date +%Y-%m-%d)*
+The command exits with a failure code when Brevo rejects the request and prints
+the API error without exposing the API key.

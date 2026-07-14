@@ -160,7 +160,7 @@ export default function HomePage() {
         className="relative isolate flex min-h-[500px] items-center overflow-hidden xl:min-h-[540px]"
         style={{
           background:
-            'linear-gradient(115deg, #21140C 0%, #2B1A0F 48%, #3D2B0E 100%)',
+            'linear-gradient(115deg, #21140C 0%, #22150D 48%, #3D2B0E 100%)',
         }}
       >
         {/* Decorative background pattern */}
@@ -195,7 +195,7 @@ export default function HomePage() {
             />
 
             {/* Subtle brown colour grading */}
-            <div className="absolute inset-0 bg-[#2B1A0F]/10 mix-blend-multiply" />
+            <div className="absolute inset-0 bg-[#22150D]/10 mix-blend-multiply" />
 
             {/* Gentle overall darkness */}
             <div className="absolute inset-0 bg-black/[0.03]" />
@@ -207,7 +207,7 @@ export default function HomePage() {
           className="pointer-events-none absolute inset-y-0 left-0 z-[2] hidden w-[64%] lg:block"
           style={{
             background:
-              'linear-gradient(90deg, #21140C 0%, #24160D 42%, rgba(43,26,15,0.98) 58%, rgba(43,26,15,0.82) 69%, rgba(43,26,15,0.48) 81%, rgba(43,26,15,0.16) 92%, transparent 100%)',
+              'linear-gradient(90deg, #21140C 0%, #22150D 42%, rgba(34,21,13,0.98) 58%, rgba(34,21,13,0.82) 69%, rgba(34,21,13,0.48) 81%, rgba(34,21,13,0.16) 92%, transparent 100%)',
           }}
         />
 
@@ -333,14 +333,24 @@ export default function HomePage() {
             >
               <div className="ml-auto grid w-full max-w-[500px] grid-cols-2 gap-3 xl:max-w-[520px] xl:gap-4">
                 {HERO_HIGHLIGHTS.map(
-                  ({
-                    title,
-                    description,
-                    Icon,
-                  }) => (
-                    <div
+                  (
+                    {
+                      title,
+                      description,
+                      Icon,
+                    },
+                    index
+                  ) => (
+                    <motion.div
                       key={title}
-                      className="rounded-[1.5rem] border border-gold/20 bg-[#21150F]/55 p-4 shadow-[0_16px_40px_rgba(0,0,0,0.24)] backdrop-blur-[10px] xl:p-5"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.55, ease: 'easeOut', delay: 0.12 + index * 0.05 }}
+                      className="rounded-[1.5rem] border border-gold/20 bg-[#21150F]/55 p-4 shadow-[0_16px_40px_rgba(0,0,0,0.24)] xl:p-5"
+                      style={{
+                        backdropFilter: 'blur(10px)',
+                        WebkitBackdropFilter: 'blur(10px)',
+                      }}
                     >
                       <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl border border-gold/20 bg-gold/15 text-gold xl:h-11 xl:w-11">
                         <Icon className="text-xl" />
@@ -353,7 +363,7 @@ export default function HomePage() {
                       <p className="text-[11px] leading-relaxed text-gray-300/80 xl:text-xs">
                         {description}
                       </p>
-                    </div>
+                    </motion.div>
                   )
                 )}
               </div>
