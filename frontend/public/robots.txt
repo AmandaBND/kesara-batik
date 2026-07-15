@@ -9,5 +9,6 @@ Disallow: /register
 Disallow: /orders
 Disallow: /wishlist
 Disallow: /order-success
+Disallow: /payment/
 
 Sitemap: https://www.kesarabathik.com/sitemap.xml

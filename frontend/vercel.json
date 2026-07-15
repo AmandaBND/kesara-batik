@@ -1,4 +1,26 @@
 {
+  "headers": [
+    {
+      "source": "/privacy-policy",
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, follow, noarchive" }]
+    },
+    {
+      "source": "/return-refund-policy",
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, follow, noarchive" }]
+    },
+    {
+      "source": "/terms-and-conditions",
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, follow, noarchive" }]
+    },
+    {
+      "source": "/sitemap.xml",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=3600, s-maxage=3600" }]
+    },
+    {
+      "source": "/robots.txt",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=3600, s-maxage=3600" }]
+    }
+  ],
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ]

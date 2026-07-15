@@ -1,49 +1,79 @@
 import Seo from '../../components/common/Seo'
 
+const FAQ_ITEMS = [
+  {
+    question: 'Are batik and bathik the same?',
+    answer: 'Yes. Batik is the internationally recognised spelling, while bathik is a common spelling used in Sri Lanka. Both refer to wax-resist dyed fabric and clothing.',
+  },
+  {
+    question: 'What is the price of bathik clothing in Sri Lanka?',
+    answer: 'Prices depend on the garment, fabric, design complexity and handwork. Kesara Bathik shows the current LKR price on every product page before checkout.',
+  },
+  {
+    question: 'Can I buy Sri Lankan batik online?',
+    answer: 'Yes. Kesara Bathik sells batik sarees, shirts, sarongs, frocks, family kits and accessories online for delivery in Sri Lanka and worldwide.',
+  },
+  {
+    question: 'How long does international shipping take?',
+    answer: 'Typical international delivery takes 7–21 business days depending on destination, customs processing and the selected delivery service.',
+  },
+  {
+    question: 'Do you ship to my country?',
+    answer: 'We ship worldwide from Sri Lanka. The checkout address form shows the available shipping option for the selected destination.',
+  },
+  {
+    question: 'How are shipping costs calculated?',
+    answer: 'Shipping is calculated using package weight, size, destination and service level. The exact charge is shown before payment.',
+  },
+  {
+    question: 'How do I choose the correct size?',
+    answer: 'Check the size information on the product page and compare it with a garment that fits you. Contact Kesara Bathik for help when unsure.',
+  },
+  {
+    question: 'How long do I have to request a return?',
+    answer: 'Standard return requests must be made within 14 days of delivery. Products must remain unused, unworn and in their original condition.',
+  },
+]
+
+const FAQ_SCHEMA = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: FAQ_ITEMS.map((item) => ({
+    '@type': 'Question',
+    name: item.question,
+    acceptedAnswer: { '@type': 'Answer', text: item.answer },
+  })),
+}
+
 export default function FAQ() {
   return (
-    <div className="section max-w-4xl mx-auto py-16">
+    <div className="section max-w-4xl mx-auto py-12">
       <Seo
-        title="FAQs | Kesara Bathik"
-        description="Answers to common questions about shipping, sizing and refunds at Kesara Bathik."
+        title="Batik & Bathik FAQs | Prices, Shipping & Sizing | Kesara"
+        description="Answers about Sri Lankan batik and bathik prices, online ordering, worldwide shipping, sizing, returns and handcrafted clothing."
+        keywords={['batik FAQ', 'bathik price in Sri Lanka', 'Sri Lankan batik online', 'batik shipping', 'bathik sizing', 'Kesara Bathik']}
         path="/faq"
+        jsonLd={FAQ_SCHEMA}
       />
 
-      <h1 className="font-display text-3xl text-deep font-bold mb-4">Frequently Asked Questions</h1>
-      <p className="text-sm text-gray-600 mb-6">Answers to common questions about shipping, sizing and refunds.</p>
+      <h1 className="font-display text-3xl text-deep font-bold mb-4">Batik &amp; Bathik Frequently Asked Questions</h1>
+      <p className="text-sm leading-6 text-gray-600 mb-8">
+        Helpful answers about authentic Sri Lankan batik clothing, bathik prices in Sri Lanka, international delivery, sizing and returns.
+      </p>
 
-      <h2 className="text-lg font-semibold mt-6 mb-2">1. How long does international shipping take?</h2>
-      <p className="mb-4">Typical international delivery times are 7–21 business days depending on destination and customs processing. Expedited options (when available) are shown during checkout.</p>
+      <div className="space-y-4">
+        {FAQ_ITEMS.map((item, index) => (
+          <article key={item.question} className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+            <h2 className="text-lg font-semibold text-deep">{index + 1}. {item.question}</h2>
+            <p className="mt-2 text-sm leading-6 text-gray-600">{item.answer}</p>
+          </article>
+        ))}
+      </div>
 
-      <h2 className="text-lg font-semibold mt-6 mb-2">2. Do you ship to my country?</h2>
-      <p className="mb-4">We ship worldwide from Colombo. Very remote or restricted destinations may be unavailable; the checkout address form will indicate available shipping options.</p>
-
-      <h2 className="text-lg font-semibold mt-6 mb-2">3. How are shipping costs calculated?</h2>
-      <p className="mb-4">Shipping is calculated from package weight/size, destination, and service level. You’ll see exact costs before you pay at checkout.</p>
-
-      <h2 className="text-lg font-semibold mt-6 mb-2">4. What if my package is delayed or lost?</h2>
-      <p className="mb-4">If tracking shows excessive delay, contact us with your order number. We will liaise with the carrier and, if lost, arrange a replacement or refund according to the situation.</p>
-
-      <h2 className="text-lg font-semibold mt-6 mb-2">5. How do I pick the right size?</h2>
-      <p className="mb-4">Refer to the product size chart on each product page and measure a garment that fits you well. If unsure, contact us with your measurements and the product SKU for guidance.</p>
-
-      <h2 className="text-lg font-semibold mt-6 mb-2">6. What should I do if an item doesn't fit?</h2>
-      <p className="mb-4">If an item doesn't fit, you may return it within the return window (see Return & Refund Policy). Items must be unworn, with tags and original packaging to qualify.</p>
-
-      <h2 className="text-lg font-semibold mt-6 mb-2">7. How long do I have to request a refund or exchange?</h2>
-      <p className="mb-4">Standard returns must be initiated within 14 days of delivery. For exceptions (sale items, customized pieces), check the product page or contact support.</p>
-
-      <h2 className="text-lg font-semibold mt-6 mb-2">8. How and when will I receive my refund?</h2>
-      <p className="mb-4">Refunds are issued to the original payment method within 5–10 business days after we receive and inspect the returned item. Timing may vary by bank or payment provider.</p>
-
-      <h2 className="text-lg font-semibold mt-6 mb-2">9. Who pays for return shipping?</h2>
-      <p className="mb-4">Customers pay return shipping unless the return is due to our error (wrong/defective item), in which case we cover return costs or provide a prepaid label.</p>
-
-      <h2 className="text-lg font-semibold mt-6 mb-2">10. What if my item arrives damaged or defective?</h2>
-      <p className="mb-4">Report damaged or defective items within 7 days of delivery with photos of the item and packaging. We will replace the item or issue a full refund after verification.</p>
-
-      <h2 className="text-lg font-semibold mt-6 mb-2">Contact</h2>
-      <p className="mb-4">For further help, email kesarabatik.info@gmail.com or WhatsApp +94 77 488 1013 and include your order number for faster support.</p>
+      <h2 className="text-lg font-semibold mt-8 mb-2">Need more help?</h2>
+      <p className="mb-4 text-sm leading-6 text-gray-600">
+        Email kesarabatik.info@gmail.com or WhatsApp +94 77 488 1013. Include your order number for faster assistance.
+      </p>
     </div>
   )
 }

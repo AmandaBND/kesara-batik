@@ -8,6 +8,15 @@ import Seo from '../../components/common/Seo'
 import api from '../../utils/api'
 import toast from 'react-hot-toast'
 
+const CATEGORY_PATHS = {
+  Women: '/women',
+  Men: '/men',
+  Kids: '/kids',
+  'Family Kits': '/family-kits',
+  Accessories: '/accessories',
+  Unisex: '/products',
+}
+
 export default function ProductDetailPage() {
   const { slug } = useParams()
   const [product, setProduct] = useState(null)
@@ -98,19 +107,93 @@ export default function ProductDetailPage() {
 
   const isSizeAvailable = (size) => product.variants?.some(v => v.size === size && (v.stock || 0) > 0)
 
+  const canonicalUrl = `https://www.kesarabathik.com/products/${slug}`
+  const primaryImage = product.images?.find((image) => image.isPrimary)?.url || product.images?.[0]?.url
+  const schemaUsesLkr = Number(product.priceLKR) > 0
+  const schemaPrice = schemaUsesLkr ? Number(product.priceLKR) : Number(product.price)
+  const schemaCurrency = schemaUsesLkr ? 'LKR' : (product.currency || 'CAD')
+  const productKeywords = [
+    ...(product.metaKeywords || []),
+    ...(product.tags || []),
+    product.category,
+    product.parentCategory && `${product.parentCategory} batik Sri Lanka`,
+    'Sri Lankan batik',
+    'Sri Lankan bathik',
+    'bathik price in Sri Lanka',
+    'Kesara Bathik',
+  ].filter(Boolean)
+  const productSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    '@id': `${canonicalUrl}#product`,
+    name: product.name,
+    description: product.shortDescription || product.description,
+    image: (product.images || []).map((image) => image.url).filter(Boolean),
+    sku: product.sku || undefined,
+    category: product.category,
+    brand: {
+      '@type': 'Brand',
+      name: 'Kesara Bathik',
+    },
+    offers: {
+      '@type': 'Offer',
+      url: canonicalUrl,
+      priceCurrency: schemaCurrency,
+      price: schemaPrice.toFixed(2),
+      availability: isOutOfStock
+        ? 'https://schema.org/OutOfStock'
+        : 'https://schema.org/InStock',
+      itemCondition: 'https://schema.org/NewCondition',
+      seller: {
+        '@type': 'Organization',
+        name: 'Kesara Bathik',
+        url: 'https://www.kesarabathik.com/',
+      },
+    },
+    ...(product.reviewCount > 0 && product.rating > 0
+      ? {
+          aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: product.rating,
+            reviewCount: product.reviewCount,
+            bestRating: 5,
+            worstRating: 1,
+          },
+        }
+      : {}),
+  }
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.kesarabathik.com/' },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: product.parentCategory || 'Batik Products',
+        item: `https://www.kesarabathik.com${CATEGORY_PATHS[product.parentCategory] || '/products'}`,
+      },
+      { '@type': 'ListItem', position: 3, name: product.name, item: canonicalUrl },
+    ],
+  }
+
   return (
     <>
       <Seo
-        title={`${product.name} | Kesara Bathik`}
-        description={product.shortDescription || product.description?.slice(0, 160)}
+        title={product.metaTitle || `${product.name} | Sri Lankan Batik | Kesara Bathik`}
+        description={product.metaDescription || product.shortDescription || product.description?.slice(0, 160)}
+        keywords={productKeywords}
         path={`/products/${slug}`}
-        image={product.images?.[0]?.url}
+        image={primaryImage}
+        imageAlt={`${product.name} - handcrafted Sri Lankan batik from Kesara Bathik`}
+        type="product"
+        jsonLd={[productSchema, breadcrumbSchema]}
       />
       <div className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-8 py-8">
         {/* Breadcrumb */}
         <nav className="text-sm text-gray-500 mb-6 flex gap-2 flex-wrap">
           <Link to="/" className="hover:text-gold">Home</Link> /
-          <Link to={`/products?parentCategory=${product.parentCategory}`} className="hover:text-gold">{product.parentCategory}</Link> /
+          <Link to={CATEGORY_PATHS[product.parentCategory] || '/products'} className="hover:text-gold">{product.parentCategory}</Link> /
           <span className="text-deep">{product.name}</span>
         </nav>
 

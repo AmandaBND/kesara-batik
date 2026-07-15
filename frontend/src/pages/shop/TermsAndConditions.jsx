@@ -7,6 +7,7 @@ export default function TermsAndConditions() {
         title="Terms & Conditions | Kesara Bathik"
         description="Read the terms and conditions for shopping with Kesara Bathik, Sri Lanka's authentic handcrafted batik fashion store."
         path="/terms-and-conditions"
+        noindex
       />
 
       <h1 className="font-display text-3xl text-deep font-bold mb-4">Terms & Conditions</h1>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useSearchParams, useLocation } from 'react-router-dom'
+import { useSearchParams, useLocation, useNavigate } from 'react-router-dom'
 import { FiFilter, FiX, FiChevronDown } from 'react-icons/fi'
 import ProductCard from '../../components/shop/ProductCard'
 import Seo from '../../components/common/Seo'
@@ -23,16 +23,67 @@ const PATH_CATEGORY_MAP = {
   '/accessories': 'Accessories',
 }
 
-const CATEGORY_DESCRIPTIONS = {
-  Women: 'Shop handcrafted Sri Lankan Bathik sarees, frocks, tops and kurtha sets for women. Authentic batik fashion shipped worldwide from Colombo.',
-  Men: "Shop handcrafted Sri Lankan Bathik shirts, sarongs and Avurudu kits for men. Authentic batik fashion shipped worldwide from Colombo.",
-  Kids: 'Shop handcrafted Sri Lankan Bathik frocks, sarees and shirts for kids. Authentic batik fashion shipped worldwide from Colombo.',
-  'Family Kits': 'Shop matching handcrafted Sri Lankan Bathik family kits. Coordinated batik outfits for the whole family, shipped worldwide.',
-  Accessories: 'Shop handcrafted Sri Lankan Bathik bags, jewellery, clutches and accessories. Authentic batik craftsmanship shipped worldwide.',
+const NEW_ARRIVALS_PATH = '/new-arrivals'
+
+const CATEGORY_PATHS = {
+  Women: '/women',
+  Men: '/men',
+  Kids: '/kids',
+  'Family Kits': '/family-kits',
+  Accessories: '/accessories',
+}
+
+
+const CATEGORY_SEO = {
+  Women: {
+    title: "Batik Sarees & Women's Bathik Prices in Sri Lanka | Kesara Bathik",
+    description:
+      'Shop Sri Lankan batik sarees, Kandyan bathik designs, frocks, kaftans, tops and kurtha sets. View current LKR prices and order online.',
+    keywords: ['batik sarees Sri Lanka', 'bathik saree price Sri Lanka', 'Kandyan batik saree', 'batik frocks Sri Lanka', 'women bathik Sri Lanka'],
+  },
+  Men: {
+    title: "Men's Batik Shirts & Sarongs Sri Lanka | Kesara Bathik",
+    description:
+      'Shop handcrafted men’s batik shirts, Sri Lankan sarongs and Avurudu kits. View bathik prices in Sri Lanka and order online worldwide.',
+    keywords: ['batik shirts Sri Lanka', 'men bathik shirts', 'batik sarong Sri Lanka', 'Avurudu batik kits', 'Sri Lankan batik men'],
+  },
+  Kids: {
+    title: 'Kids Batik Clothing Sri Lanka | Frocks, Sarees & Shirts',
+    description:
+      'Shop colourful Sri Lankan batik clothing for kids, including frocks, lama sarees, shirts and sarongs. Current LKR prices shown online.',
+    keywords: ['kids batik Sri Lanka', 'bathik frocks for kids', 'kids batik shirts', 'lama saree batik', 'children bathik clothing'],
+  },
+  'Family Kits': {
+    title: 'Batik Family Kits Sri Lanka | Matching Bathik Outfits',
+    description:
+      'Shop matching Sri Lankan batik family kits for Avurudu, weddings and celebrations. Coordinated bathik outfits with current online prices.',
+    keywords: ['batik family kits Sri Lanka', 'matching bathik clothes', 'Avurudu family batik', 'Sri Lankan family outfits'],
+  },
+  Accessories: {
+    title: 'Batik Accessories Sri Lanka | Bags, Clutches & Jewellery',
+    description:
+      'Shop handcrafted Sri Lankan batik bags, clutches, jewellery, slippers and hair accessories. View local prices and order online.',
+    keywords: ['batik accessories Sri Lanka', 'batik bags Sri Lanka', 'bathik clutch', 'Sri Lankan handmade accessories'],
+  },
+}
+
+const DEFAULT_PRODUCTS_SEO = {
+  title: 'Batik Clothing Sri Lanka | Sarees, Shirts & Bathik Prices',
+  description:
+    'Browse authentic Sri Lankan batik and bathik sarees, shirts, sarongs, frocks, family kits and accessories with current online prices.',
+  keywords: ['Batik Sri Lanka', 'Bathik Sri Lanka', 'bathik price in Sri Lanka', 'batik clothing online', 'Sri Lankan batik shop'],
+}
+
+const NEW_ARRIVALS_SEO = {
+  title: 'New Sri Lankan Batik Clothing | Kesara Bathik',
+  description:
+    'Discover the latest Sri Lankan batik sarees, shirts, sarongs, frocks, family kits and accessories newly added to Kesara Bathik.',
+  keywords: ['new batik designs Sri Lanka', 'latest bathik sarees', 'new batik shirts', 'Sri Lankan batik new arrivals'],
 }
 
 export default function ProductsPage() {
   const location = useLocation()
+  const navigate = useNavigate()
   const [params, setParams] = useSearchParams()
   const [products, setProducts] = useState([])
   const [total, setTotal] = useState(0)
@@ -44,10 +95,11 @@ export default function ProductsPage() {
   const [priceRange, setPriceRange] = useState({ min: '', max: '' })
 
   const pathCategory = PATH_CATEGORY_MAP[location.pathname]
+  const isNewArrivalsPath = location.pathname === NEW_ARRIVALS_PATH
   const category = params.get('category') || ''
   const parentCategory = params.get('parentCategory') || pathCategory || ''
   const search = params.get('search') || ''
-  const newArrival = params.get('newArrival') || ''
+  const newArrival = params.get('newArrival') || (isNewArrivalsPath ? 'true' : '')
   const featured = params.get('featured') || ''
 
   useEffect(() => {
@@ -68,16 +120,56 @@ export default function ProductsPage() {
     fetch()
   }, [category, parentCategory, search, newArrival, featured, sort, page, priceRange])
 
-  const title = parentCategory || category || (search ? `Search: "${search}"` : null) || (newArrival ? 'New Arrivals' : 'All Products')
-  const description = CATEGORY_DESCRIPTIONS[parentCategory] || 'Shop authentic handcrafted Sri Lankan Bathik sarees, sarongs, shirts and family kits. Shipped from Colombo worldwide.'
+  const heading = parentCategory || category || (search ? `Search: "${search}"` : null) || (newArrival ? 'New Arrivals' : 'All Batik Products')
+  const seo = parentCategory
+    ? (CATEGORY_SEO[parentCategory] || DEFAULT_PRODUCTS_SEO)
+    : newArrival
+      ? NEW_ARRIVALS_SEO
+      : DEFAULT_PRODUCTS_SEO
+  const canonicalPath = (pathCategory || isNewArrivalsPath) ? location.pathname : '/products'
+  const isFilteredQuery = location.pathname === '/products' && Boolean(search || category || params.get('parentCategory') || featured || newArrival)
+  const collectionSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: seo.title.replace(/ \| .*$/, ''),
+    description: seo.description,
+    url: `https://www.kesarabathik.com${canonicalPath}`,
+    isPartOf: { '@id': 'https://www.kesarabathik.com/#website' },
+    mainEntity: {
+      '@type': 'ItemList',
+      numberOfItems: products.length,
+      itemListElement: products.slice(0, 12).map((product, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        url: `https://www.kesarabathik.com/products/${product.slug}`,
+        name: product.name,
+      })),
+    },
+  }
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.kesarabathik.com/' },
+      { '@type': 'ListItem', position: 2, name: heading, item: `https://www.kesarabathik.com${canonicalPath}` },
+    ],
+  }
 
   return (
     <>
-      <Seo title={`${title} | Kesara Bathik`} description={description} path={location.pathname} />
+      <Seo
+        title={seo.title}
+        description={seo.description}
+        keywords={seo.keywords}
+        path={canonicalPath}
+        noindex={isFilteredQuery}
+        jsonLd={[collectionSchema, breadcrumbSchema]}
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-8 py-8">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="font-display text-2xl lg:text-3xl font-bold text-deep">{title}</h1>
+            <h1 className="font-display text-2xl lg:text-3xl font-bold text-deep">{heading}</h1>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-gray-600">{seo.description}</p>
             {!loading && <p className="text-sm text-gray-500 mt-1">{total} products found</p>}
           </div>
           <div className="flex items-center gap-3">
@@ -101,7 +193,7 @@ export default function ProductsPage() {
               <h3 className="font-bold text-sm uppercase tracking-wider text-gray-500 mb-4">Categories</h3>
               {Object.entries(SUBCATEGORIES).map(([parent, subs]) => (
                 <div key={parent} className="mb-4">
-                  <button onClick={() => { const p = new URLSearchParams(params); p.set('parentCategory', parent); p.delete('category'); setParams(p) }} className={`block w-full text-left text-sm font-semibold py-1 hover:text-gold transition-colors ${parentCategory === parent ? 'text-gold' : 'text-deep'}`}>{parent}</button>
+                  <button onClick={() => navigate(CATEGORY_PATHS[parent] || `/products?parentCategory=${encodeURIComponent(parent)}`)} className={`block w-full text-left text-sm font-semibold py-1 hover:text-gold transition-colors ${parentCategory === parent ? 'text-gold' : 'text-deep'}`}>{parent}</button>
                   {subs.map(s => (
                     <button key={s} onClick={() => { const p = new URLSearchParams(params); p.set('category', s); p.delete('parentCategory'); setParams(p) }} className={`block text-xs pl-3 py-1 hover:text-gold transition-colors w-full text-left ${category === s ? 'text-gold font-semibold' : 'text-gray-500'}`}>{s}</button>
                   ))}

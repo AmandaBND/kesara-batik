@@ -30,31 +30,31 @@ const CATEGORIES = [
     name: 'Women',
     image: womenCategoryImage,
     desc: 'Sarees, Kurthas & more',
-    href: '/products?parentCategory=Women',
+    href: '/women',
   },
   {
     name: 'Men',
     image: menCategoryImage,
     desc: 'Shirts, Sarongs & kits',
-    href: '/products?parentCategory=Men',
+    href: '/men',
   },
   {
     name: 'Kids',
     image: kidsCategoryImage,
     desc: 'Batik styles for children',
-    href: '/products?parentCategory=Kids',
+    href: '/kids',
   },
   {
     name: 'Family Kits',
     image: familyCategoryImage,
     desc: 'Matching sets for the family',
-    href: '/products?parentCategory=Family+Kits',
+    href: '/family-kits',
   },
   {
     name: 'Accessories',
     image: accessoriesCategoryImage,
     desc: 'Bags, jewellery & more',
-    href: '/products?parentCategory=Accessories',
+    href: '/accessories',
   },
 ]
 
@@ -125,6 +125,111 @@ const TESTIMONIALS = [
   },
 ]
 
+const HOME_KEYWORDS = [
+  'Batik',
+  'Bathik',
+  'Batik Sri Lanka',
+  'Bathik Sri Lanka',
+  'Sri Lankan batik',
+  'Sri Lankan bathik',
+  'bathik price in Sri Lanka',
+  'batik price in Sri Lanka',
+  'batik saree price Sri Lanka',
+  'bathik saree price Sri Lanka',
+  'batik sarees Sri Lanka',
+  'batik shirts Sri Lanka',
+  'batik sarongs Sri Lanka',
+  'batik frocks Sri Lanka',
+  'batik family kits Sri Lanka',
+  'Kandyan batik saree',
+  'handmade batik clothing',
+  'traditional Sri Lankan batik',
+  'buy batik online Sri Lanka',
+  'batik shop Colombo',
+  'Ceylon batik',
+  'Kesara Bathik',
+]
+
+const HOME_FAQS = [
+  {
+    question: 'Are batik and bathik the same?',
+    answer:
+      'Yes. Batik is the internationally recognised spelling, while bathik is a common spelling used by Sri Lankan shoppers. Kesara Bathik offers authentic Sri Lankan batik clothing made with traditional wax-resist dyeing.',
+  },
+  {
+    question: 'What is the price of bathik clothing in Sri Lanka?',
+    answer:
+      'Bathik prices in Sri Lanka depend on the garment, fabric, design complexity and amount of handwork. Each Kesara Bathik product page shows the current Sri Lankan LKR price before checkout.',
+  },
+  {
+    question: 'Can I buy Sri Lankan batik sarees and shirts online?',
+    answer:
+      'Yes. You can order Sri Lankan batik sarees, shirts, sarongs, frocks, family kits and accessories online from Kesara Bathik for delivery within Sri Lanka and overseas.',
+  },
+  {
+    question: 'Do you ship Sri Lankan batik products worldwide?',
+    answer:
+      'Yes. Kesara Bathik ships handcrafted batik products from Sri Lanka to Canada, the USA, the UK, UAE, Japan, Korea and many other destinations.',
+  },
+]
+
+const HOME_SCHEMAS = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    '@id': 'https://www.kesarabathik.com/#website',
+    url: 'https://www.kesarabathik.com/',
+    name: 'Kesara Bathik',
+    alternateName: ['Kesara Batik', 'කේසර බතික්'],
+    inLanguage: 'en-LK',
+    publisher: { '@id': 'https://www.kesarabathik.com/#organization' },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': ['Organization', 'OnlineStore'],
+    '@id': 'https://www.kesarabathik.com/#organization',
+    name: 'Kesara Bathik',
+    alternateName: ['Kesara Batik', 'කේසර බතික්'],
+    url: 'https://www.kesarabathik.com/',
+    logo: 'https://www.kesarabathik.com/logo.png',
+    image: 'https://www.kesarabathik.com/og-image.jpg',
+    description:
+      'Authentic handcrafted Sri Lankan batik and bathik sarees, shirts, sarongs, frocks, family kits and accessories.',
+    email: 'kesarabatik.info@gmail.com',
+    telephone: '+94774881013',
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: 'Colombo',
+      addressCountry: 'LK',
+    },
+    areaServed: ['Sri Lanka', 'Canada', 'United States', 'United Kingdom', 'United Arab Emirates', 'Japan', 'South Korea'],
+    currenciesAccepted: ['LKR', 'CAD', 'USD', 'GBP', 'AED', 'JPY', 'KRW'],
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: 'Sri Lankan Batik Clothing Categories',
+    itemListElement: CATEGORIES.map((category, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: category.name,
+      url: `https://www.kesarabathik.com${category.href}`,
+    })),
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: HOME_FAQS.map((item) => ({
+      '@type': 'Question',
+      name: item.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: item.answer,
+      },
+    })),
+  },
+]
+
 export default function HomePage() {
   const [featured, setFeatured] = useState([])
   const [newArrivals, setNewArrivals] = useState([])
@@ -150,9 +255,13 @@ export default function HomePage() {
   return (
     <>
       <Seo
-        title="Kesara Bathik | Authentic Sri Lankan Handcrafted Batik Fashion"
-        description="Shop authentic handcrafted Sri Lankan Batik sarees, sarongs, shirts and family kits. Free shipping to Canada & USA on orders over CA$120."
+        title="Batik Sri Lanka | Bathik Sarees, Shirts & Prices | Kesara Bathik"
+        description="Shop authentic Sri Lankan batik and bathik sarees, shirts, sarongs, frocks, family kits and accessories. View bathik prices in Sri Lanka and order online."
+        keywords={HOME_KEYWORDS}
         path="/"
+        image="https://www.kesarabathik.com/og-image.jpg"
+        imageAlt="Kesara Bathik Sri Lankan batik sarees, shirts, sarongs and family clothing"
+        jsonLd={HOME_SCHEMAS}
       />
 
       {/* HERO SECTION */}
@@ -249,7 +358,7 @@ export default function HomePage() {
               <h1 className="mb-4">
                 {/* Accessible heading text for SEO and screen readers */}
                 <span className="sr-only">
-                  කේසර බතික් Fashion
+                  Kesara Bathik — authentic Sri Lankan batik and bathik fashion
                 </span>
 
                 {/* Sinhala title image */}
@@ -275,9 +384,7 @@ export default function HomePage() {
               </h1>
 
               <p className="mb-6 max-w-lg text-lg leading-relaxed text-gray-400">
-                Handcrafted in the heart of Sri Lanka. Every piece carries
-                centuries of artisan tradition — shipped to Canada, USA, UAE
-                and worldwide.
+                Authentic Sri Lankan batik and bathik clothing, handcrafted with traditional wax-resist artistry — available in Sri Lanka and shipped worldwide.
               </p>
 
               <div className="flex flex-wrap gap-4">
@@ -289,7 +396,7 @@ export default function HomePage() {
                 </Link>
 
                 <Link
-                  to="/products?newArrival=true"
+                  to="/new-arrivals"
                   className="btn-outline-gold text-base"
                 >
                   New Arrivals
@@ -444,7 +551,7 @@ export default function HomePage() {
             </h2>
 
             <Link
-              to="/products?newArrival=true"
+              to="/new-arrivals"
               className="border-b border-gold pb-0.5 text-sm font-semibold text-gold transition-opacity hover:opacity-70"
             >
               View All →
@@ -504,6 +611,93 @@ export default function HomePage() {
             )}
           </div>
         )}
+      </section>
+
+      {/* SEO INTRODUCTION */}
+      <section className="bg-white border-y border-gold/10">
+        <div className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-8 lg:px-8 lg:py-12">
+          <div className="max-w-4xl">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-gold">
+              Handmade in Sri Lanka
+            </p>
+            <h2 className="font-display text-3xl font-bold leading-tight text-deep lg:text-4xl">
+              Authentic Sri Lankan <span className="text-gold">Batik &amp; Bathik</span> Clothing
+            </h2>
+            <p className="mt-4 text-base leading-7 text-gray-600">
+              Kesara Bathik is an online batik shop in Sri Lanka offering handcrafted batik sarees, shirts,
+              sarongs, frocks, Kandyan designs, family kits and accessories. Whether you search for
+              <strong> batik</strong> or <strong>bathik</strong>, every piece is made using traditional Sri Lankan
+              wax-resist dyeing and finished by skilled artisans.
+            </p>
+            <p className="mt-3 text-base leading-7 text-gray-600">
+              Looking for <strong>bathik prices in Sri Lanka</strong>? Open any product to see its current LKR price,
+              available colours, sizes and stock. Overseas shoppers can browse the same collection using CAD,
+              USD, GBP, AED, JPY or KRW and order for international delivery.
+            </p>
+          </div>
+
+          <div className="mt-7 grid gap-4 md:grid-cols-3">
+            <article className="rounded-2xl border border-gold/15 bg-gold-50 p-5">
+              <h3 className="font-display text-lg font-bold text-deep">Batik Sarees &amp; Women’s Wear</h3>
+              <p className="mt-2 text-sm leading-6 text-gray-600">
+                Discover Sri Lankan batik sarees, Kandyan designs, frocks, kaftans, tops and kurtha sets.
+              </p>
+              <Link to="/women" className="mt-3 inline-block text-sm font-semibold text-gold hover:underline">
+                Shop women’s batik →
+              </Link>
+            </article>
+
+            <article className="rounded-2xl border border-gold/15 bg-gold-50 p-5">
+              <h3 className="font-display text-lg font-bold text-deep">Batik Shirts &amp; Sarongs</h3>
+              <p className="mt-2 text-sm leading-6 text-gray-600">
+                Shop men’s batik shirts, Sri Lankan sarongs and coordinated Avurudu clothing sets.
+              </p>
+              <Link to="/men" className="mt-3 inline-block text-sm font-semibold text-gold hover:underline">
+                Shop men’s batik →
+              </Link>
+            </article>
+
+            <article className="rounded-2xl border border-gold/15 bg-gold-50 p-5">
+              <h3 className="font-display text-lg font-bold text-deep">Kids &amp; Family Batik</h3>
+              <p className="mt-2 text-sm leading-6 text-gray-600">
+                Find children’s batik clothing and matching family kits for celebrations and special occasions.
+              </p>
+              <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm font-semibold text-gold">
+                <Link to="/kids" className="hover:underline">Kids →</Link>
+                <Link to="/family-kits" className="hover:underline">Family kits →</Link>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      {/* BATIK FAQ */}
+      <section className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-8 lg:px-8 lg:py-12" aria-labelledby="batik-faq-heading">
+        <div className="grid gap-8 lg:grid-cols-[0.75fr_1.25fr]">
+          <div>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-gold">Buying Guide</p>
+            <h2 id="batik-faq-heading" className="font-display text-3xl font-bold text-deep">
+              Batik &amp; Bathik FAQs
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-gray-600">
+              Helpful answers about Sri Lankan batik products, local prices and worldwide ordering.
+            </p>
+            <Link to="/faq" className="mt-4 inline-block text-sm font-semibold text-gold hover:underline">
+              View all FAQs →
+            </Link>
+          </div>
+
+          <div className="grid gap-3">
+            {HOME_FAQS.map((item) => (
+              <details key={item.question} className="group rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+                <summary className="cursor-pointer list-none pr-6 font-semibold text-deep marker:content-none">
+                  {item.question}
+                </summary>
+                <p className="mt-3 text-sm leading-6 text-gray-600">{item.answer}</p>
+              </details>
+            ))}
+          </div>
+        </div>
       </section>
 
       {/* TRUST BADGES */}

@@ -17,6 +17,14 @@ const CATEGORIES = {
   Accessories: ["Bags", "Jewellery", "Clutches", "Slippers", "Hair Accessories"],
 }
 
+const CATEGORY_PATHS = {
+  Women: '/women',
+  Men: '/men',
+  Kids: '/kids',
+  'Family Kits': '/family-kits',
+  Accessories: '/accessories',
+}
+
 export default function ShopLayout() {
   const { items, isOpen, closeCart, toggleCart, removeItem, updateQty, subtotal, itemCount, shipping, total } = useCartStore()
   const { user, logout } = useAuthStore()
@@ -145,7 +153,7 @@ export default function ShopLayout() {
           <div className="max-w-7xl mx-auto px-8 flex">
             {Object.entries(CATEGORIES).map(([cat, subs]) => (
               <div key={cat} className="relative group">
-                <Link to={`/products?parentCategory=${cat}`} className="flex items-center gap-1 px-4 py-3 text-sm text-gray-300 hover:text-gold transition-colors font-medium">
+                <Link to={CATEGORY_PATHS[cat]} className="flex items-center gap-1 px-4 py-3 text-sm text-gray-300 hover:text-gold transition-colors font-medium">
                   {cat} {subs.length > 0 && <FiChevronDown size={14} />}
                 </Link>
                 {subs.length > 0 && (
@@ -157,7 +165,7 @@ export default function ShopLayout() {
                 )}
               </div>
             ))}
-            <Link to="/products?newArrival=true" className="px-4 py-3 text-sm text-gold font-semibold hover:text-gold-light transition-colors ml-auto">✨ New Arrivals</Link>
+            <Link to="/new-arrivals" className="px-4 py-3 text-sm text-gold font-semibold hover:text-gold-light transition-colors ml-auto">✨ New Arrivals</Link>
           </div>
         </nav>
 
@@ -167,7 +175,7 @@ export default function ShopLayout() {
             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="lg:hidden bg-white border-t shadow-lg py-4 px-4">
               {Object.entries(CATEGORIES).map(([cat, subs]) => (
                 <div key={cat} className="mb-2">
-                  <Link to={`/products?parentCategory=${cat}`} onClick={() => setMobileOpen(false)} className="block font-semibold text-deep py-2 border-b border-gray-100">{cat}</Link>
+                  <Link to={CATEGORY_PATHS[cat]} onClick={() => setMobileOpen(false)} className="block font-semibold text-deep py-2 border-b border-gray-100">{cat}</Link>
                   <div className="pl-4 mt-1">
                     {subs.map(s => <Link key={s} to={`/products?category=${encodeURIComponent(s)}`} onClick={() => setMobileOpen(false)} className="block text-sm text-gray-600 py-1 hover:text-gold">{s}</Link>)}
                   </div>
@@ -203,13 +211,13 @@ export default function ShopLayout() {
                 <div className="text-gold text-xs tracking-widest">KESARA BATHIK</div>
               </div>
             </div>
-            <p className="text-sm leading-relaxed text-gray-500">Authentic handcrafted Sri Lankan Batik fashion. Shipped from Colombo to Canada, USA, UAE and worldwide.</p>
+            <p className="text-sm leading-relaxed text-gray-500">Authentic Sri Lankan batik and bathik sarees, shirts, sarongs, frocks, family kits and accessories. Shop current bathik prices in Sri Lanka and order worldwide.</p>
             <div className="flex gap-3 mt-4">
               {['f','📸','💬'].map((s,i) => <a key={i} href="#" className="w-9 h-9 border border-gold/30 rounded-full flex items-center justify-center text-gold hover:bg-gold hover:text-deep transition-colors text-sm">{s}</a>)}
             </div>
           </div>
           {[
-            { title: 'Shop', links: [['Women', '/products?parentCategory=Women'], ["Men", '/products?parentCategory=Men'], ['Kids', '/products?parentCategory=Kids'], ['Family Kits', '/products?parentCategory=Family+Kits'], ['New Arrivals', '/products?newArrival=true']] },
+            { title: 'Shop', links: [['Women', '/women'], ['Men', '/men'], ['Kids', '/kids'], ['Family Kits', '/family-kits'], ['Accessories', '/accessories'], ['New Arrivals', '/new-arrivals']] },
             { title: 'Help', links: [['Privacy Policy', '/privacy-policy'], ['Return and Refund Policy', '/return-refund-policy'], ['Terms & Conditions', '/terms-and-conditions'], ['FAQs', '/faq']] },
           ].map(col => (
             <div key={col.title}>
@@ -230,7 +238,7 @@ export default function ShopLayout() {
           </div>
         </div>
         <div className="border-t border-white/10 py-6 px-8 flex flex-wrap items-center justify-between gap-4 max-w-7xl mx-auto">
-          <p className="text-xs text-gray-600">© 2024 Kesara Bathik. All rights reserved.</p>
+          <p className="text-xs text-gray-600">© 2026 Kesara Bathik. All rights reserved.</p>
           <div className="flex gap-2">
             {['💳 Visa','💳 Mastercard','🔌 Dialog Genie','🏦 Bank Wire'].map(p => (
               <span key={p} className="text-xs px-2 py-1 border border-white/10 rounded text-gray-500">{p}</span>

@@ -7,6 +7,7 @@ export default function ReturnRefundPolicy() {
         title="Return & Refund Policy | Kesara Bathik"
         description="Read the Kesara Bathik return and refund policy, including timelines and eligibility for handcrafted batik orders."
         path="/return-refund-policy"
+        noindex
       />
 
       <h1 className="font-display text-3xl text-deep font-bold mb-4">Refund & Return Policy</h1>
