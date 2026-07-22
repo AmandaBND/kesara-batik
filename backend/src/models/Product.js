@@ -103,5 +103,6 @@ productSchema.pre("save", function (next) {
 
 productSchema.index({ name: "text", description: "text", tags: "text" });
 productSchema.index({ category: 1, isActive: 1 });
+productSchema.index({ parentCategory: 1, isActive: 1 });
 
 module.exports = mongoose.model("Product", productSchema);

@@ -1,50 +1,235 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "cleanUrls": true,
+  "trailingSlash": false,
   "headers": [
     {
+      "source": "/",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+        }
+      ]
+    },
+    {
+      "source": "/products",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400"
+        }
+      ]
+    },
+    {
+      "source": "/new-arrivals",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400"
+        }
+      ]
+    },
+    {
+      "source": "/women",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400"
+        }
+      ]
+    },
+    {
+      "source": "/men",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400"
+        }
+      ]
+    },
+    {
+      "source": "/kids",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400"
+        }
+      ]
+    },
+    {
+      "source": "/family-kits",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400"
+        }
+      ]
+    },
+    {
+      "source": "/accessories",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400"
+        }
+      ]
+    },
+    {
+      "source": "/faq",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400"
+        }
+      ]
+    },
+    {
       "source": "/privacy-policy",
-      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, follow, noarchive" }]
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow, noarchive"
+        }
+      ]
     },
     {
       "source": "/return-refund-policy",
-      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, follow, noarchive" }]
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow, noarchive"
+        }
+      ]
     },
     {
       "source": "/terms-and-conditions",
-      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, follow, noarchive" }]
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow, noarchive"
+        }
+      ]
     },
     {
       "source": "/sitemap.xml",
-      "headers": [{ "key": "Cache-Control", "value": "public, max-age=3600, s-maxage=3600" }]
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/xml; charset=utf-8"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400"
+        }
+      ]
     },
     {
       "source": "/robots.txt",
-      "headers": [{ "key": "Cache-Control", "value": "public, max-age=3600, s-maxage=3600" }]
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/plain; charset=utf-8"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400"
+        }
+      ]
     }
   ],
   "rewrites": [
-    { "source": "/products", "destination": "/seo-products.html" },
-    { "source": "/new-arrivals", "destination": "/seo-new-arrivals.html" },
-    { "source": "/women", "destination": "/seo-women.html" },
-    { "source": "/men", "destination": "/seo-men.html" },
-    { "source": "/kids", "destination": "/seo-kids.html" },
-    { "source": "/family-kits", "destination": "/seo-family-kits.html" },
-    { "source": "/accessories", "destination": "/seo-accessories.html" },
-    { "source": "/faq", "destination": "/seo-faq.html" },
-
-    { "source": "/products/:slug", "destination": "/index.html" },
-    { "source": "/cart", "destination": "/index.html" },
-    { "source": "/checkout", "destination": "/index.html" },
-    { "source": "/account", "destination": "/index.html" },
-    { "source": "/orders", "destination": "/index.html" },
-    { "source": "/orders/:path*", "destination": "/index.html" },
-    { "source": "/wishlist", "destination": "/index.html" },
-    { "source": "/login", "destination": "/index.html" },
-    { "source": "/register", "destination": "/index.html" },
-    { "source": "/privacy-policy", "destination": "/index.html" },
-    { "source": "/return-refund-policy", "destination": "/index.html" },
-    { "source": "/terms-and-conditions", "destination": "/index.html" },
-    { "source": "/payment/:path*", "destination": "/index.html" },
-    { "source": "/order-success/:path*", "destination": "/index.html" },
-    { "source": "/admin/:path*", "destination": "/index.html" }
+    {
+      "source": "/products/:slug",
+      "destination": "/index"
+    },
+    {
+      "source": "/cart",
+      "destination": "/index"
+    },
+    {
+      "source": "/checkout",
+      "destination": "/index"
+    },
+    {
+      "source": "/account",
+      "destination": "/index"
+    },
+    {
+      "source": "/orders",
+      "destination": "/index"
+    },
+    {
+      "source": "/orders/:path*",
+      "destination": "/index"
+    },
+    {
+      "source": "/wishlist",
+      "destination": "/index"
+    },
+    {
+      "source": "/login",
+      "destination": "/index"
+    },
+    {
+      "source": "/register",
+      "destination": "/index"
+    },
+    {
+      "source": "/privacy-policy",
+      "destination": "/index"
+    },
+    {
+      "source": "/return-refund-policy",
+      "destination": "/index"
+    },
+    {
+      "source": "/terms-and-conditions",
+      "destination": "/index"
+    },
+    {
+      "source": "/payment/:path*",
+      "destination": "/index"
+    },
+    {
+      "source": "/order-success/:path*",
+      "destination": "/index"
+    },
+    {
+      "source": "/admin/:path*",
+      "destination": "/index"
+    }
   ]
 }

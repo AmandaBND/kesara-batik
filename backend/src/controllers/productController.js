@@ -1,6 +1,7 @@
 const asyncHandler = require("express-async-handler");
 const Product = require("../models/Product");
 const { cloudinary } = require("../config/cloudinary");
+const { inferParentCategory, categoriesForParent } = require("../utils/productCategories");
 
 const BOOL_FIELDS = ["isFeatured", "isNewArrival", "isTrending", "isActive"];
 
@@ -79,7 +80,13 @@ exports.getProducts = asyncHandler(async (req, res) => {
   if (!includeInactive) query.isActive = true;
 
   if (category) query.category = category;
-  if (parentCategory) query.parentCategory = parentCategory;
+  if (parentCategory) {
+    const legacyCategories = categoriesForParent(parentCategory);
+    query.$or = [
+      { parentCategory },
+      ...(legacyCategories.length ? [{ category: { $in: legacyCategories } }] : []),
+    ];
+  }
   if (featured === "true") query.isFeatured = true;
   if (newArrival === "true") query.isNewArrival = true;
   if (trending === "true") query.isTrending = true;
@@ -139,6 +146,9 @@ exports.createProduct = asyncHandler(async (req, res) => {
     console.log("[Product Create] Files:", req.files?.length || 0);
 
     const data = parseFormData({ ...req.body });
+    if (!data.parentCategory && data.category) {
+      data.parentCategory = inferParentCategory(data.category);
+    }
     console.log("[Product Create] Parsed Data:", JSON.stringify(data, null, 2));
 
     if (req.files?.length) {
@@ -174,6 +184,9 @@ exports.updateProduct = asyncHandler(async (req, res) => {
   if (!product) return res.status(404).json({ message: "Product not found" });
 
   const data = sanitizeUpdateData(parseFormData({ ...req.body }));
+  if (!data.parentCategory && data.category) {
+    data.parentCategory = inferParentCategory(data.category);
+  }
 
   // Handle new image uploads
   if (req.files?.length) {

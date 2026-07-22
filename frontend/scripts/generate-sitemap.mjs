@@ -4,6 +4,7 @@ import path from 'node:path'
 
 const SITE_URL = 'https://www.kesarabathik.com'
 const DEFAULT_API = 'https://kesara-batik-production.up.railway.app/api'
+const buildDate = new Date().toISOString()
 
 function apiBaseUrl() {
   let value = process.env.VITE_API_URL || DEFAULT_API
@@ -36,7 +37,7 @@ const corePages = [
 
 async function fetchProducts() {
   const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), 12000)
+  const timeout = setTimeout(() => controller.abort(), 20000)
   try {
     const response = await fetch(`${apiBaseUrl()}/products?limit=1000&sort=newest`, {
       signal: controller.signal,
@@ -57,23 +58,27 @@ const products = await fetchProducts()
 const rows = [
   ...corePages.map(([route, changefreq, priority]) => ({
     loc: `${SITE_URL}${route}`,
+    lastmod: buildDate,
     changefreq,
     priority,
   })),
   ...products
-    .filter((product) => product?.slug)
+    .filter((product) => product?.slug && product?.isActive !== false)
     .map((product) => ({
       loc: `${SITE_URL}/products/${encodeURIComponent(product.slug)}`,
-      lastmod: product.updatedAt ? new Date(product.updatedAt).toISOString() : undefined,
+      lastmod: product.updatedAt ? new Date(product.updatedAt).toISOString() : buildDate,
       changefreq: 'weekly',
       priority: '0.7',
     })),
 ]
 
+const uniqueRows = [...new Map(rows.map((row) => [row.loc, row])).values()]
+
 const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${rows.map((row) => `  <url>
-    <loc>${escapeXml(row.loc)}</loc>${row.lastmod ? `\n    <lastmod>${escapeXml(row.lastmod)}</lastmod>` : ''}
+${uniqueRows.map((row) => `  <url>
+    <loc>${escapeXml(row.loc)}</loc>
+    <lastmod>${escapeXml(row.lastmod)}</lastmod>
     <changefreq>${row.changefreq}</changefreq>
     <priority>${row.priority}</priority>
   </url>`).join('\n')}
@@ -82,4 +87,4 @@ ${rows.map((row) => `  <url>
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 await writeFile(path.join(here, '..', 'public', 'sitemap.xml'), xml, 'utf8')
-console.log(`[sitemap] Wrote ${rows.length} URLs (${products.length} products)`)
+console.log(`[sitemap] Wrote ${uniqueRows.length} canonical URLs (${products.length} products fetched)`)
