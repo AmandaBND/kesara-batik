@@ -204,7 +204,7 @@ function shell(content) {
 function header(accent = "#16a34a") {
   return `
     <tr>
-      <td style="padding:30px 40px;text-align:center;background:linear-gradient(135deg,#27180F 0%,#3d2b0e 100%);">
+      <td style="padding:30px 40px;text-align:center;background:linear-gradient(135deg,#27180f 0%,#3d2b0e 100%);">
         <img src="${LOGO_URL}" alt="Kesara Bathik" width="54" height="54" style="display:inline-block;width:54px;height:54px;border-radius:12px;margin-bottom:10px;" />
         <div style="font-size:22px;font-weight:800;color:#fff;">Kesara Bathik</div>
         <div style="margin-top:4px;color:#d7a039;font-size:11px;letter-spacing:1.7px;text-transform:uppercase;">Authentic Sri Lankan handcrafted batik</div>
