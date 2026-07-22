@@ -6,7 +6,15 @@ import { Toaster } from 'react-hot-toast'
 import App from './App.jsx'
 import './index.css'
 
-ReactDOM.createRoot(document.getElementById('root')).render(
+const rootElement = document.getElementById('root')
+
+// SEO builds include a static route snapshot. Clear it immediately before
+// React mounts so users receive the normal interactive application.
+if (rootElement?.dataset?.prerendered === 'true') {
+  rootElement.replaceChildren()
+}
+
+ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
     <HelmetProvider>
       <BrowserRouter>

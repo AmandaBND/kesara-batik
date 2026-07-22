@@ -39,6 +39,12 @@ app.use(morgan("dev"));
 // Static
 app.use("/uploads", express.static("uploads"));
 
+// Prevent the Railway API hostname from being indexed as a separate website.
+// The public shop robots.txt is served by Vercel at kesarabathik.com.
+app.get("/robots.txt", (req, res) => {
+  res.type("text/plain").send("User-agent: *\nDisallow: /\n");
+});
+
 // Routes
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/products", require("./routes/productRoutes"));

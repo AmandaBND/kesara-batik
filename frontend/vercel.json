@@ -22,6 +22,29 @@
     }
   ],
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/products", "destination": "/seo-products.html" },
+    { "source": "/new-arrivals", "destination": "/seo-new-arrivals.html" },
+    { "source": "/women", "destination": "/seo-women.html" },
+    { "source": "/men", "destination": "/seo-men.html" },
+    { "source": "/kids", "destination": "/seo-kids.html" },
+    { "source": "/family-kits", "destination": "/seo-family-kits.html" },
+    { "source": "/accessories", "destination": "/seo-accessories.html" },
+    { "source": "/faq", "destination": "/seo-faq.html" },
+
+    { "source": "/products/:slug", "destination": "/index.html" },
+    { "source": "/cart", "destination": "/index.html" },
+    { "source": "/checkout", "destination": "/index.html" },
+    { "source": "/account", "destination": "/index.html" },
+    { "source": "/orders", "destination": "/index.html" },
+    { "source": "/orders/:path*", "destination": "/index.html" },
+    { "source": "/wishlist", "destination": "/index.html" },
+    { "source": "/login", "destination": "/index.html" },
+    { "source": "/register", "destination": "/index.html" },
+    { "source": "/privacy-policy", "destination": "/index.html" },
+    { "source": "/return-refund-policy", "destination": "/index.html" },
+    { "source": "/terms-and-conditions", "destination": "/index.html" },
+    { "source": "/payment/:path*", "destination": "/index.html" },
+    { "source": "/order-success/:path*", "destination": "/index.html" },
+    { "source": "/admin/:path*", "destination": "/index.html" }
   ]
 }
