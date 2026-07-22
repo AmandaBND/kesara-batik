@@ -1,34 +1,39 @@
-const SITE_URL = process.env.FRONTEND_URL || 'https://www.kesarabathik.com';
-const ADMIN_URL = `${SITE_URL.replace(/\/$/, '')}/admin/orders`;
-const LOGO_URL = `${SITE_URL.replace(/\/$/, '')}/logo.png`;
+const SITE_URL = process.env.FRONTEND_URL || "https://www.kesarabathik.com";
+const ADMIN_URL = `${SITE_URL.replace(/\/$/, "")}/admin/orders`;
+const LOGO_URL = `${SITE_URL.replace(/\/$/, "")}/logo.png`;
 
 const CURRENCY_SYMBOLS = {
-  CAD: 'CA$',
-  USD: 'US$',
-  LKR: 'Rs. ',
-  AED: 'AED ',
-  JPY: '¥',
-  KRW: '₩',
-  GBP: '£',
-  EUR: '€',
+  CAD: "CA$",
+  USD: "US$",
+  LKR: "Rs. ",
+  AED: "AED ",
+  JPY: "¥",
+  KRW: "₩",
+  GBP: "£",
+  EUR: "€",
 };
 
 function esc(value) {
-  return String(value ?? '').replace(/[&<>"']/g, (char) => ({
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#39;',
-  }[char]));
+  return String(value ?? "").replace(
+    /[&<>"']/g,
+    (char) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      })[char],
+  );
 }
 
-function formatMoney(amount, currency = 'LKR') {
-  const normalizedCurrency = String(currency || 'LKR').toUpperCase();
-  const symbol = CURRENCY_SYMBOLS[normalizedCurrency] || `${normalizedCurrency} `;
-  const digits = ['JPY', 'KRW'].includes(normalizedCurrency) ? 0 : 2;
+function formatMoney(amount, currency = "LKR") {
+  const normalizedCurrency = String(currency || "LKR").toUpperCase();
+  const symbol =
+    CURRENCY_SYMBOLS[normalizedCurrency] || `${normalizedCurrency} `;
+  const digits = ["JPY", "KRW"].includes(normalizedCurrency) ? 0 : 2;
 
-  return `${symbol}${Number(amount || 0).toLocaleString('en-US', {
+  return `${symbol}${Number(amount || 0).toLocaleString("en-US", {
     minimumFractionDigits: digits,
     maximumFractionDigits: digits,
   })}`;
@@ -36,54 +41,58 @@ function formatMoney(amount, currency = 'LKR') {
 
 function formatDate(value) {
   const date = value ? new Date(value) : new Date();
-  if (Number.isNaN(date.getTime())) return '-';
+  if (Number.isNaN(date.getTime())) return "-";
 
-  return date.toLocaleString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
+  return date.toLocaleString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 }
 
 function customerEmail(order) {
-  return order.shippingAddress?.email
-    || order.guestEmail
-    || order.user?.email
-    || '';
+  return (
+    order.shippingAddress?.email || order.guestEmail || order.user?.email || ""
+  );
 }
 
 function customerName(order) {
-  return order.shippingAddress?.fullName
-    || order.user?.name
-    || 'Valued Customer';
+  return (
+    order.shippingAddress?.fullName || order.user?.name || "Valued Customer"
+  );
 }
 
 function addressHtml(address) {
-  if (!address) return '-';
+  if (!address) return "-";
 
   return [
     address.fullName,
     address.address,
-    [address.city, address.state, address.postalCode].filter(Boolean).join(', '),
+    [address.city, address.state, address.postalCode]
+      .filter(Boolean)
+      .join(", "),
     address.country,
     address.phone,
   ]
     .filter(Boolean)
     .map(esc)
-    .join('<br />');
+    .join("<br />");
 }
 
 function itemRows(order) {
-  const currency = order.pricing?.currency || 'LKR';
+  const currency = order.pricing?.currency || "LKR";
 
-  return (order.items || []).map((item) => {
-    const variant = [item.variant?.size, item.variant?.color].filter(Boolean).join(' / ');
-    const quantity = Number(item.quantity || 1);
-    const lineTotal = Number(item.price || 0) * quantity;
+  return (order.items || [])
+    .map((item) => {
+      const variant = [item.variant?.size, item.variant?.color]
+        .filter(Boolean)
+        .join(" / ");
+      const quantity = Number(item.quantity || 1);
+      const lineTotal = Number(item.price || 0) * quantity;
 
-    return `
+      return `
       <tr>
         <td style="padding:14px 0;border-bottom:1px solid #eee7dc;vertical-align:top;">
           <table cellpadding="0" cellspacing="0" role="presentation">
@@ -91,15 +100,15 @@ function itemRows(order) {
               <td style="padding-right:14px;vertical-align:top;">
                 <img
                   src="${esc(item.image || LOGO_URL)}"
-                  alt="${esc(item.name || 'Product')}"
+                  alt="${esc(item.name || "Product")}"
                   width="62"
                   height="62"
                   style="display:block;width:62px;height:62px;border-radius:9px;object-fit:cover;background:#f3eee5;"
                 />
               </td>
               <td style="vertical-align:top;">
-                <div style="font-size:14px;font-weight:700;color:#281b10;line-height:1.4;">${esc(item.name || 'Product')}</div>
-                ${variant ? `<div style="margin-top:3px;font-size:12px;color:#8e8274;">${esc(variant)}</div>` : ''}
+                <div style="font-size:14px;font-weight:700;color:#281b10;line-height:1.4;">${esc(item.name || "Product")}</div>
+                ${variant ? `<div style="margin-top:3px;font-size:12px;color:#8e8274;">${esc(variant)}</div>` : ""}
                 <div style="margin-top:3px;font-size:12px;color:#a1988d;">Quantity: ${quantity}</div>
               </td>
             </tr>
@@ -109,28 +118,41 @@ function itemRows(order) {
           ${formatMoney(lineTotal, currency)}
         </td>
       </tr>`;
-  }).join('');
+    })
+    .join("");
 }
 
 function paymentRows(order) {
-  const checkoutCurrency = order.pricing?.currency || order.payment?.checkoutCurrency || 'LKR';
-  const checkoutAmount = Number(order.pricing?.total ?? order.payment?.checkoutAmount ?? 0);
+  const checkoutCurrency =
+    order.pricing?.currency || order.payment?.checkoutCurrency || "LKR";
+  const checkoutAmount = Number(
+    order.pricing?.total ?? order.payment?.checkoutAmount ?? 0,
+  );
   const gatewayCurrency = order.payment?.gatewayCurrency || checkoutCurrency;
-  const gatewayAmount = Number(order.payment?.gatewayAmountMajor ?? checkoutAmount);
-  const transactionId = order.payment?.transactionId || order.payment?.genieOrderId || '-';
-  const showGatewaySettlement = String(gatewayCurrency).toUpperCase() !== String(checkoutCurrency).toUpperCase()
-    || Math.abs(gatewayAmount - checkoutAmount) > 0.005;
+  const gatewayAmount = Number(
+    order.payment?.gatewayAmountMajor ?? checkoutAmount,
+  );
+  const transactionId =
+    order.payment?.transactionId || order.payment?.genieOrderId || "-";
+  const showGatewaySettlement =
+    String(gatewayCurrency).toUpperCase() !==
+      String(checkoutCurrency).toUpperCase() ||
+    Math.abs(gatewayAmount - checkoutAmount) > 0.005;
 
   return `
     <tr>
       <td style="padding:6px 0;color:#7b7065;font-size:13px;">Order total</td>
       <td style="padding:6px 0;text-align:right;color:#281b10;font-size:14px;font-weight:700;">${formatMoney(checkoutAmount, checkoutCurrency)}</td>
     </tr>
-    ${showGatewaySettlement ? `
+    ${
+      showGatewaySettlement
+        ? `
     <tr>
       <td style="padding:6px 0;color:#7b7065;font-size:13px;">Processed by Genie</td>
       <td style="padding:6px 0;text-align:right;color:#281b10;font-size:14px;font-weight:700;">${formatMoney(gatewayAmount, gatewayCurrency)}</td>
-    </tr>` : ''}
+    </tr>`
+        : ""
+    }
     <tr>
       <td style="padding:6px 0;color:#7b7065;font-size:13px;">Payment method</td>
       <td style="padding:6px 0;text-align:right;color:#281b10;font-size:13px;">Dialog Genie</td>
@@ -179,10 +201,10 @@ function shell(content) {
 </html>`;
 }
 
-function header(accent = '#16a34a') {
+function header(accent = "#16a34a") {
   return `
     <tr>
-      <td style="padding:30px 40px;text-align:center;background:linear-gradient(135deg,#21140c 0%,#3d2b0e 100%);">
+      <td style="padding:30px 40px;text-align:center;background:linear-gradient(135deg,#27180F 0%,#3d2b0e 100%);">
         <img src="${LOGO_URL}" alt="Kesara Bathik" width="54" height="54" style="display:inline-block;width:54px;height:54px;border-radius:12px;margin-bottom:10px;" />
         <div style="font-size:22px;font-weight:800;color:#fff;">Kesara Bathik</div>
         <div style="margin-top:4px;color:#d7a039;font-size:11px;letter-spacing:1.7px;text-transform:uppercase;">Authentic Sri Lankan handcrafted batik</div>
@@ -193,7 +215,7 @@ function header(accent = '#16a34a') {
 
 function buildCustomerPaymentSuccessEmail(order) {
   const name = customerName(order);
-  const orderNumber = order.orderNumber || '';
+  const orderNumber = order.orderNumber || "";
 
   return shell(`
     ${header()}
@@ -246,7 +268,7 @@ function buildCustomerPaymentSuccessEmail(order) {
         <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-top:28px;">
           <tr>
             <td align="center">
-              <a href="${SITE_URL.replace(/\/$/, '')}/orders" style="display:inline-block;padding:13px 29px;border-radius:8px;background:#c8923a;color:#fff;font-size:14px;font-weight:800;">View your order</a>
+              <a href="${SITE_URL.replace(/\/$/, "")}/orders" style="display:inline-block;padding:13px 29px;border-radius:8px;background:#c8923a;color:#fff;font-size:14px;font-weight:800;">View your order</a>
             </td>
           </tr>
         </table>
@@ -267,10 +289,10 @@ function buildCustomerPaymentSuccessEmail(order) {
 function buildAdminPaymentSuccessEmail(order) {
   const name = customerName(order);
   const email = customerEmail(order);
-  const orderNumber = order.orderNumber || '';
+  const orderNumber = order.orderNumber || "";
 
   return shell(`
-    ${header('#16a34a')}
+    ${header("#16a34a")}
     <tr>
       <td class="body-pad" style="padding:34px 40px;">
         <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom:22px;background:#ecfdf3;border:1px solid #bbf7d0;border-radius:10px;">
@@ -287,8 +309,8 @@ function buildAdminPaymentSuccessEmail(order) {
             <td style="padding:20px 22px;">
               <div style="margin-bottom:10px;color:#a1988d;font-size:11px;letter-spacing:1px;text-transform:uppercase;">Customer</div>
               <div style="color:#281b10;font-size:14px;font-weight:700;">${esc(name)}</div>
-              ${email ? `<div style="margin-top:4px;color:#7b7065;font-size:13px;">${esc(email)}</div>` : ''}
-              ${order.shippingAddress?.phone ? `<div style="margin-top:3px;color:#7b7065;font-size:13px;">${esc(order.shippingAddress.phone)}</div>` : ''}
+              ${email ? `<div style="margin-top:4px;color:#7b7065;font-size:13px;">${esc(email)}</div>` : ""}
+              ${order.shippingAddress?.phone ? `<div style="margin-top:3px;color:#7b7065;font-size:13px;">${esc(order.shippingAddress.phone)}</div>` : ""}
             </td>
           </tr>
         </table>
@@ -318,8 +340,8 @@ function buildAdminPaymentSuccessEmail(order) {
     </tr>`);
 }
 
-function buildPaymentSuccessEmail({ order, recipientType = 'customer' }) {
-  return recipientType === 'admin'
+function buildPaymentSuccessEmail({ order, recipientType = "customer" }) {
+  return recipientType === "admin"
     ? buildAdminPaymentSuccessEmail(order)
     : buildCustomerPaymentSuccessEmail(order);
 }

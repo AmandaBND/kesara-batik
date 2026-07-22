@@ -269,7 +269,7 @@ export default function HomePage() {
         className="relative isolate flex min-h-[500px] items-center overflow-hidden xl:min-h-[540px]"
         style={{
           background:
-            'linear-gradient(115deg, #21140C 0%, #22150D 48%, #3D2B0E 100%)',
+            'linear-gradient(115deg, #27180F 0%, #22150D 48%, #3D2B0E 100%)',
         }}
       >
         {/* Decorative background pattern */}
@@ -316,7 +316,7 @@ export default function HomePage() {
           className="pointer-events-none absolute inset-y-0 left-0 z-[2] hidden w-[64%] lg:block"
           style={{
             background:
-              'linear-gradient(90deg, #21140C 0%, #22150D 42%, rgba(34,21,13,0.98) 58%, rgba(34,21,13,0.82) 69%, rgba(34,21,13,0.48) 81%, rgba(34,21,13,0.16) 92%, transparent 100%)',
+              'linear-gradient(90deg, #27180F 0%, #22150D 42%, rgba(34,21,13,0.98) 58%, rgba(34,21,13,0.82) 69%, rgba(34,21,13,0.48) 81%, rgba(34,21,13,0.16) 92%, transparent 100%)',
           }}
         />
 
