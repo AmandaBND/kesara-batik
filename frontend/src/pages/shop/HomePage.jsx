@@ -320,15 +320,6 @@ export default function HomePage() {
           }}
         />
 
-        {/* Soft radial transition around image starting area */}
-        <div
-          className="pointer-events-none absolute inset-y-0 left-[28%] z-[3] hidden w-[36%] lg:block"
-          style={{
-            background:
-              'radial-gradient(ellipse at left center, rgba(43,26,15,0.72) 0%, rgba(43,26,15,0.45) 35%, rgba(43,26,15,0.16) 67%, transparent 100%)',
-          }}
-        />
-
         {/* Mobile background decoration */}
         <div className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-r from-transparent to-gold/5 lg:hidden" />
 
