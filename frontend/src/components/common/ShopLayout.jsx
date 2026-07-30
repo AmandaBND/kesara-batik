@@ -85,9 +85,12 @@ export default function ShopLayout() {
             {/* Logo */}
             <Link to="/" className="flex items-center gap-3 shrink-0">
              <img src={logo} alt="Kesara Bathik" className="h-10 w-10 object-contain" />
-              <div className="hidden sm:block">
-                <div className="font-display text-lg font-bold text-deep leading-tight">කේසර බතික්</div>
-                <div className="text-xs text-gold font-medium tracking-widest">KESARA BATHIK</div>
+              {/* Googlebot crawls this site as a smartphone. Anything inside a
+                  bare `hidden` block is display:none in the mobile-first render,
+                  so the Latin brand name stays visible at every width. */}
+              <div className="block">
+                <div className="hidden font-display text-lg font-bold leading-tight text-deep sm:block">කේසර බතික්</div>
+                <div className="text-[10px] font-medium tracking-widest text-gold sm:text-xs">KESARA BATHIK</div>
               </div>
             </Link>
 

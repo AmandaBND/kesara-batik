@@ -351,40 +351,32 @@ export default function HomePage() {
               className="relative z-20"
             >
               <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-gold">
-                Authentic Sri Lankan Craftsmanship
+                Kesara Bathik · Authentic Sri Lankan Craftsmanship
               </p>
 
               {/* Hero title */}
               <h1 className="mb-4">
-                {/* Accessible heading text for SEO and screen readers */}
-                <span className="sr-only">
-                  Kesara Bathik — authentic Sri Lankan batik and bathik fashion
-                </span>
-
-                {/* Sinhala title image */}
-                <span
-                  aria-hidden="true"
-                  className="relative block aspect-[1009/734] w-[205px] overflow-hidden sm:w-[220px] lg:w-[235px] xl:w-[245px]"
-                >
+                {/* Sinhala brand name. The alt text carries the brand, so the
+                    heading is not empty for crawlers that ignore CSS-hidden text. */}
+                <span className="relative block aspect-[1009/734] w-[205px] overflow-hidden sm:w-[220px] lg:w-[235px] xl:w-[245px]">
                   <img
                     src={homePageText}
-                    alt=""
+                    alt="කේසර බතික්"
                     className="absolute left-[-12.1%] top-[-30.7%] block w-[124.2%] max-w-none select-none"
                     draggable="false"
                   />
                 </span>
 
-                {/* English title */}
-                <span
-                  aria-hidden="true"
-                  className="mt-1 block font-display text-3xl font-bold leading-tight text-white lg:text-4xl"
-                >
-                  Fashion
+                {/* Latin brand name as real, visible text. This is the only
+                    part of the H1 Google reliably weights for the brand query,
+                    so it must not be sr-only, aria-hidden or an image. */}
+                <span className="mt-1 block font-display text-3xl font-bold leading-tight text-white lg:text-4xl">
+                  Kesara Bathik Fashion
                 </span>
               </h1>
 
               <p className="mb-6 max-w-lg text-lg leading-relaxed text-gray-400">
-                Authentic Sri Lankan batik and bathik clothing, handcrafted with traditional wax-resist artistry — available in Sri Lanka and shipped worldwide.
+                Kesara Bathik makes authentic Sri Lankan batik and bathik clothing, handcrafted with traditional wax-resist artistry — available in Sri Lanka and shipped worldwide.
               </p>
 
               <div className="flex flex-wrap gap-4">

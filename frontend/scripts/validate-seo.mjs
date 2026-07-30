@@ -70,6 +70,33 @@ const home = await readFile(path.join(distDir, 'index.html'), 'utf8').catch(() =
 if (!home.includes('<title>Kesara Bathik | Authentic Sri Lankan Batik &amp; Bathik Clothing</title>')) failures.push('index.html: brand-first title missing')
 if (!home.includes('Kesara Bathik – Authentic Sri Lankan Batik and Bathik Clothing')) failures.push('index.html: exact brand H1 missing')
 
+// The checks above only inspect the prerendered snapshot. main.jsx calls
+// rootElement.replaceChildren() before React mounts, so Google's renderer
+// throws that snapshot away and indexes the React output instead. These guards
+// make sure the React output still carries the brand as visible text.
+const srcDir = path.join(here, '..', 'src')
+const homeSource = await readFile(path.join(srcDir, 'pages', 'shop', 'HomePage.jsx'), 'utf8').catch(() => '')
+const layoutSource = await readFile(path.join(srcDir, 'components', 'common', 'ShopLayout.jsx'), 'utf8').catch(() => '')
+
+const renderedH1 = homeSource.match(/<h1[\s\S]*?<\/h1>/)?.[0] ?? ''
+if (!renderedH1) {
+  failures.push('HomePage.jsx: no H1 found in the rendered homepage')
+} else {
+  const visibleH1 = renderedH1
+    .replace(/<span[^>]*\bsr-only\b[\s\S]*?<\/span>/g, '')
+    .replace(/<span[^>]*aria-hidden="true"[\s\S]*?<\/span>/g, '')
+  if (!/Kesara Bathik/.test(visibleH1)) {
+    failures.push('HomePage.jsx: rendered H1 has no visible "Kesara Bathik" text (sr-only or aria-hidden does not count)')
+  }
+  if (/<img[^>]*\balt=""/.test(renderedH1)) {
+    failures.push('HomePage.jsx: rendered H1 contains an image with empty alt text')
+  }
+}
+
+if (/className="hidden sm:block"[\s\S]{0,400}KESARA BATHIK/.test(layoutSource)) {
+  failures.push('ShopLayout.jsx: header brand name is hidden at mobile width, which is the width Googlebot renders')
+}
+
 if (failures.length) {
   console.error('[seo-validate] Failed:')
   failures.forEach((failure) => console.error(` - ${failure}`))
