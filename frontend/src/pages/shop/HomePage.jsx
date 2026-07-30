@@ -183,6 +183,11 @@ const HOME_SCHEMAS = [
     alternateName: ['Kesara Batik', 'කේසර බතික්'],
     inLanguage: 'en-LK',
     publisher: { '@id': 'https://www.kesarabathik.com/#organization' },
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: 'https://www.kesarabathik.com/products?search={search_term_string}',
+      'query-input': 'required name=search_term_string',
+    },
   },
   {
     '@context': 'https://schema.org',
@@ -191,7 +196,11 @@ const HOME_SCHEMAS = [
     name: 'Kesara Bathik',
     alternateName: ['Kesara Batik', 'කේසර බතික්'],
     url: 'https://www.kesarabathik.com/',
-    logo: 'https://www.kesarabathik.com/logo.png',
+    logo: {
+      '@type': 'ImageObject',
+      url: 'https://www.kesarabathik.com/logo.png',
+      contentUrl: 'https://www.kesarabathik.com/logo.png',
+    },
     image: 'https://www.kesarabathik.com/og-image.jpg',
     description:
       'Authentic handcrafted Sri Lankan batik and bathik sarees, shirts, sarongs, frocks, family kits and accessories.',
@@ -255,8 +264,8 @@ export default function HomePage() {
   return (
     <>
       <Seo
-        title="Batik Sri Lanka | Bathik Sarees, Shirts & Prices | Kesara Bathik"
-        description="Shop authentic Sri Lankan batik and bathik sarees, shirts, sarongs, frocks, family kits and accessories. View bathik prices in Sri Lanka and order online."
+        title="Kesara Bathik | Authentic Sri Lankan Batik & Bathik Clothing"
+        description="Official Kesara Bathik online store for authentic Sri Lankan batik and bathik sarees, shirts, sarongs, family kits and accessories. View current prices and order online."
         keywords={HOME_KEYWORDS}
         path="/"
         image="https://www.kesarabathik.com/og-image.jpg"
@@ -615,7 +624,7 @@ export default function HomePage() {
               Authentic Sri Lankan <span className="text-gold">Batik &amp; Bathik</span> Clothing
             </h2>
             <p className="mt-4 text-base leading-7 text-gray-600">
-              Kesara Bathik is an online batik shop in Sri Lanka offering handcrafted batik sarees, shirts,
+              Kesara Bathik is the official online store of the Kesara Bathik brand in Sri Lanka, offering handcrafted batik sarees, shirts,
               sarongs, frocks, Kandyan designs, family kits and accessories. Whether you search for
               <strong> batik</strong> or <strong>bathik</strong>, every piece is made using traditional Sri Lankan
               wax-resist dyeing and finished by skilled artisans.

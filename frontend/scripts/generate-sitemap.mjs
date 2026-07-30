@@ -1,10 +1,24 @@
-import { writeFile } from 'node:fs/promises'
+import { readFile, writeFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 
 const SITE_URL = 'https://www.kesarabathik.com'
 const DEFAULT_API = 'https://kesara-batik-production.up.railway.app/api'
-const buildDate = new Date().toISOString()
+const SEO_LAST_UPDATED = '2026-07-30'
+const here = path.dirname(fileURLToPath(import.meta.url))
+const publicDir = path.join(here, '..', 'public')
+
+const corePages = [
+  '/',
+  '/products',
+  '/new-arrivals',
+  '/women',
+  '/men',
+  '/kids',
+  '/family-kits',
+  '/accessories',
+  '/faq',
+]
 
 function apiBaseUrl() {
   let value = process.env.VITE_API_URL || DEFAULT_API
@@ -23,17 +37,19 @@ function escapeXml(value = '') {
     .replaceAll("'", '&apos;')
 }
 
-const corePages = [
-  ['/', 'daily', '1.0'],
-  ['/products', 'daily', '0.9'],
-  ['/new-arrivals', 'daily', '0.9'],
-  ['/women', 'weekly', '0.9'],
-  ['/men', 'weekly', '0.9'],
-  ['/kids', 'weekly', '0.8'],
-  ['/family-kits', 'weekly', '0.8'],
-  ['/accessories', 'weekly', '0.8'],
-  ['/faq', 'monthly', '0.6'],
-]
+function validDate(value) {
+  if (!value) return null
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? null : date.toISOString()
+}
+
+async function readFallbackProducts() {
+  try {
+    return JSON.parse(await readFile(path.join(here, 'product-fallback.json'), 'utf8'))
+  } catch {
+    return []
+  }
+}
 
 async function fetchProducts() {
   const controller = new AbortController()
@@ -45,46 +61,41 @@ async function fetchProducts() {
     })
     if (!response.ok) throw new Error(`API responded ${response.status}`)
     const data = await response.json()
-    return Array.isArray(data.products) ? data.products : []
+    const products = Array.isArray(data.products) ? data.products : []
+    if (!products.length) throw new Error('API returned no products')
+    return { products, source: 'API' }
   } catch (error) {
-    console.warn(`[sitemap] Product fetch skipped: ${error.message}`)
-    return []
+    const products = await readFallbackProducts()
+    console.warn(`[sitemap] Product API unavailable (${error.message}); using ${products.length} stable fallback products`)
+    return { products, source: 'fallback' }
   } finally {
     clearTimeout(timeout)
   }
 }
 
-const products = await fetchProducts()
+const { products, source } = await fetchProducts()
 const rows = [
-  ...corePages.map(([route, changefreq, priority]) => ({
+  ...corePages.map((route) => ({
     loc: `${SITE_URL}${route}`,
-    lastmod: buildDate,
-    changefreq,
-    priority,
+    lastmod: SEO_LAST_UPDATED,
   })),
   ...products
     .filter((product) => product?.slug && product?.isActive !== false)
     .map((product) => ({
       loc: `${SITE_URL}/products/${encodeURIComponent(product.slug)}`,
-      lastmod: product.updatedAt ? new Date(product.updatedAt).toISOString() : buildDate,
-      changefreq: 'weekly',
-      priority: '0.7',
+      lastmod: validDate(product.updatedAt),
     })),
 ]
 
 const uniqueRows = [...new Map(rows.map((row) => [row.loc, row])).values()]
-
 const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${uniqueRows.map((row) => `  <url>
-    <loc>${escapeXml(row.loc)}</loc>
-    <lastmod>${escapeXml(row.lastmod)}</lastmod>
-    <changefreq>${row.changefreq}</changefreq>
-    <priority>${row.priority}</priority>
+    <loc>${escapeXml(row.loc)}</loc>${row.lastmod ? `
+    <lastmod>${escapeXml(row.lastmod)}</lastmod>` : ''}
   </url>`).join('\n')}
 </urlset>
 `
 
-const here = path.dirname(fileURLToPath(import.meta.url))
-await writeFile(path.join(here, '..', 'public', 'sitemap.xml'), xml, 'utf8')
-console.log(`[sitemap] Wrote ${uniqueRows.length} canonical URLs (${products.length} products fetched)`)
+await writeFile(path.join(publicDir, 'sitemap.xml'), xml, 'utf8')
+console.log(`[sitemap] Wrote ${uniqueRows.length} canonical URLs using ${source} product data`)

@@ -1,4 +1,4 @@
-import { readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -19,14 +19,14 @@ function apiBaseUrl() {
 const routes = [
   {
     path: "/",
-    title: "Batik Sri Lanka | Bathik Sarees, Shirts & Prices | Kesara Bathik",
+    title: "Kesara Bathik | Authentic Sri Lankan Batik & Bathik Clothing",
     description:
-      "Shop authentic Sri Lankan batik and bathik sarees, shirts, sarongs, frocks, family kits and accessories. View current LKR prices and order online.",
+      "Official Kesara Bathik online store for authentic Sri Lankan batik and bathik sarees, shirts, sarongs, family kits and accessories. View current prices and order online.",
     keywords:
       "Batik Sri Lanka, Bathik Sri Lanka, bathik price in Sri Lanka, batik sarees Sri Lanka, batik shirts Sri Lanka, Kesara Bathik",
-    heading: "Authentic Sri Lankan Batik and Bathik Clothing",
+    heading: "Kesara Bathik – Authentic Sri Lankan Batik and Bathik Clothing",
     intro:
-      "Kesara Bathik offers handcrafted Sri Lankan batik sarees, shirts, sarongs, frocks, family kits and accessories with current prices for local and overseas customers.",
+      "Visit the official Kesara Bathik online store for handcrafted Sri Lankan batik sarees, shirts, sarongs, frocks, family kits and accessories with current prices for local and overseas customers.",
     sections: [
       [
         "Shop Sri Lankan batik online",
@@ -268,6 +268,39 @@ const routes = [
     ],
     faqs: [],
   },
+  {
+    path: "/privacy-policy",
+    title: "Privacy Policy | Kesara Bathik",
+    description: "Read how Kesara Bathik handles customer information, account data, orders and website usage.",
+    keywords: "Kesara Bathik privacy policy",
+    heading: "Kesara Bathik Privacy Policy",
+    intro: "This policy explains how Kesara Bathik handles customer and website information.",
+    sections: [["Privacy information", "The full privacy policy is available on this page. This administrative page is intentionally excluded from Google Search while remaining available to customers."]],
+    faqs: [],
+    noindex: true,
+  },
+  {
+    path: "/return-refund-policy",
+    title: "Return and Refund Policy | Kesara Bathik",
+    description: "Read the Kesara Bathik return, refund and exchange conditions for handcrafted batik orders.",
+    keywords: "Kesara Bathik return refund policy",
+    heading: "Kesara Bathik Return and Refund Policy",
+    intro: "Review the return, refund and exchange conditions for Kesara Bathik orders.",
+    sections: [["Returns and refunds", "The full return and refund policy is available on this page. This administrative page is intentionally excluded from Google Search while remaining available to customers."]],
+    faqs: [],
+    noindex: true,
+  },
+  {
+    path: "/terms-and-conditions",
+    title: "Terms and Conditions | Kesara Bathik",
+    description: "Read the terms and conditions for using the Kesara Bathik website and placing handcrafted batik orders.",
+    keywords: "Kesara Bathik terms and conditions",
+    heading: "Kesara Bathik Terms and Conditions",
+    intro: "Review the terms that apply when using the Kesara Bathik website and placing an order.",
+    sections: [["Website and order terms", "The full terms and conditions are available on this page. This administrative page is intentionally excluded from Google Search while remaining available to customers."]],
+    faqs: [],
+    noindex: true,
+  },
 ];
 
 const categoryAliases = {
@@ -458,6 +491,125 @@ function routeSchema(route, products) {
   return { "@context": "https://schema.org", "@graph": graph };
 }
 
+
+function stripHtml(value = "") {
+  return String(value).replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function productDescription(product) {
+  const source = product.metaDescription || product.shortDescription || stripHtml(product.description || "");
+  if (source) return source.slice(0, 160);
+  return `Shop ${product.name} from Kesara Bathik, the official online store for authentic handcrafted Sri Lankan batik and bathik clothing.`;
+}
+
+function productImage(product) {
+  return product.images?.find((image) => image?.isPrimary)?.url || product.images?.[0]?.url || `${SITE_URL}/og-image.jpg`;
+}
+
+function productCurrency(product) {
+  return Number(product.priceLKR) > 0 ? "LKR" : (product.currency || "CAD");
+}
+
+function productPrice(product) {
+  const value = Number(product.priceLKR) > 0 ? Number(product.priceLKR) : Number(product.price);
+  return Number.isFinite(value) && value > 0 ? value.toFixed(2) : null;
+}
+
+function productSnapshot(product) {
+  const categoryPath = {
+    Women: "/women",
+    Men: "/men",
+    Kids: "/kids",
+    "Family Kits": "/family-kits",
+    Accessories: "/accessories",
+  }[product.parentCategory] || "/products";
+  const description = productDescription(product);
+  const image = productImage(product);
+  const price = productPrice(product);
+  const currency = productCurrency(product);
+  return `<main class="seo-snapshot seo-product-snapshot" aria-label="${escapeHtml(product.name)}"><div class="seo-snapshot__inner">
+    <p class="seo-snapshot__eyebrow">Kesara Bathik · Official Sri Lankan Batik Store</p>
+    <nav aria-label="Breadcrumb"><a href="/">Home</a> · <a href="${categoryPath}">${escapeHtml(product.parentCategory || "Batik Products")}</a></nav>
+    <h1>${escapeHtml(product.name)}</h1>
+    <div class="seo-product-snapshot__grid">
+      <img src="${escapeHtml(image)}" alt="${escapeHtml(`${product.name} by Kesara Bathik`)}" />
+      <div><p class="seo-snapshot__intro">${escapeHtml(description)}</p>
+      ${price ? `<p><strong>${escapeHtml(currency)} ${escapeHtml(price)}</strong></p>` : ""}
+      <p>Authentic handcrafted Sri Lankan batik and bathik clothing from Kesara Bathik.</p>
+      <p><a href="${categoryPath}">Browse related batik products</a> · <a href="/products">View all products</a></p></div>
+    </div>
+  </div></main>`;
+}
+
+function productSchema(product) {
+  const pathName = productPath(product);
+  const canonical = `${SITE_URL}${pathName}`;
+  const price = productPrice(product);
+  const images = (product.images || []).map((image) => image?.url).filter(Boolean);
+  const availability = Number(product.stock) === 0
+    ? "https://schema.org/OutOfStock"
+    : "https://schema.org/InStock";
+  const schema = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebPage",
+        "@id": `${canonical}#webpage`,
+        url: canonical,
+        name: product.name,
+        description: productDescription(product),
+        isPartOf: { "@id": `${SITE_URL}/#website` },
+        primaryImageOfPage: { "@id": `${canonical}#primaryimage` },
+        inLanguage: "en-LK",
+      },
+      {
+        "@type": "ImageObject",
+        "@id": `${canonical}#primaryimage`,
+        url: productImage(product),
+        contentUrl: productImage(product),
+      },
+      {
+        "@type": "Product",
+        "@id": `${canonical}#product`,
+        name: product.name,
+        description: productDescription(product),
+        image: images.length ? images : [productImage(product)],
+        sku: product.sku || undefined,
+        category: product.category || product.parentCategory || "Sri Lankan Batik",
+        brand: { "@type": "Brand", name: "Kesara Bathik" },
+        ...(price ? {
+          offers: {
+            "@type": "Offer",
+            url: canonical,
+            priceCurrency: productCurrency(product),
+            price,
+            availability,
+            itemCondition: "https://schema.org/NewCondition",
+            seller: { "@id": `${SITE_URL}/#organization` },
+          },
+        } : {}),
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Home", item: `${SITE_URL}/` },
+          { "@type": "ListItem", position: 2, name: product.parentCategory || "Batik Products", item: `${SITE_URL}/products` },
+          { "@type": "ListItem", position: 3, name: product.name, item: canonical },
+        ],
+      },
+    ],
+  };
+  return schema;
+}
+
+async function fallbackProducts() {
+  try {
+    return JSON.parse(await readFile(path.join(here, "product-fallback.json"), "utf8"));
+  } catch {
+    return [];
+  }
+}
+
 async function fetchProducts() {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 20000);
@@ -471,10 +623,13 @@ async function fetchProducts() {
     );
     if (!response.ok) throw new Error(`API responded ${response.status}`);
     const body = await response.json();
-    return Array.isArray(body.products) ? body.products : [];
+    const products = Array.isArray(body.products) ? body.products : [];
+    if (!products.length) throw new Error("API returned no products");
+    return products;
   } catch (error) {
-    console.warn(`[prerender] Product fetch skipped: ${error.message}`);
-    return [];
+    const products = await fallbackProducts();
+    console.warn(`[prerender] Product API unavailable (${error.message}); using ${products.length} stable fallback products`);
+    return products;
   } finally {
     clearTimeout(timeout);
   }
@@ -484,7 +639,7 @@ const baseHtml = await readFile(path.join(distDir, "index.html"), "utf8");
 const products = await fetchProducts();
 
 const snapshotStyle = `<style id="seo-snapshot-style">
-.seo-snapshot{min-height:70vh;background:#f8f4ed;color:#21140c;font-family:Arial,sans-serif;padding:56px 24px}.seo-snapshot__inner{max-width:1120px;margin:0 auto}.seo-snapshot__eyebrow{color:#a66f18;font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}.seo-snapshot h1{font-family:Georgia,serif;font-size:42px;line-height:1.15;margin:14px 0}.seo-snapshot h2{font-family:Georgia,serif;font-size:27px;margin:34px 0 10px}.seo-snapshot h3{font-size:18px;margin:22px 0 7px}.seo-snapshot p{max-width:850px;line-height:1.75;color:#5b5148}.seo-snapshot__intro{font-size:18px}.seo-snapshot nav ul{display:flex;flex-wrap:wrap;gap:12px 22px;padding:18px 0;list-style:none}.seo-snapshot a{color:#8b5c10;font-weight:700;text-decoration:none}.seo-snapshot a:hover{text-decoration:underline}.seo-products{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 24px;padding-left:20px}@media(max-width:640px){.seo-snapshot{padding:40px 18px}.seo-snapshot h1{font-size:32px}.seo-products{grid-template-columns:1fr}}
+.seo-snapshot{min-height:70vh;background:#f8f4ed;color:#21140c;font-family:Arial,sans-serif;padding:56px 24px}.seo-snapshot__inner{max-width:1120px;margin:0 auto}.seo-snapshot__eyebrow{color:#a66f18;font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}.seo-snapshot h1{font-family:Georgia,serif;font-size:42px;line-height:1.15;margin:14px 0}.seo-snapshot h2{font-family:Georgia,serif;font-size:27px;margin:34px 0 10px}.seo-snapshot h3{font-size:18px;margin:22px 0 7px}.seo-snapshot p{max-width:850px;line-height:1.75;color:#5b5148}.seo-snapshot__intro{font-size:18px}.seo-snapshot nav ul{display:flex;flex-wrap:wrap;gap:12px 22px;padding:18px 0;list-style:none}.seo-snapshot a{color:#8b5c10;font-weight:700;text-decoration:none}.seo-snapshot a:hover{text-decoration:underline}.seo-products{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 24px;padding-left:20px}.seo-product-snapshot__grid{display:grid;grid-template-columns:minmax(240px,380px) 1fr;gap:36px;align-items:start}.seo-product-snapshot__grid img{width:100%;max-height:520px;object-fit:cover;border-radius:18px;background:#efe8de}@media(max-width:760px){.seo-product-snapshot__grid{grid-template-columns:1fr}}@media(max-width:640px){.seo-snapshot{padding:40px 18px}.seo-snapshot h1{font-size:32px}.seo-products{grid-template-columns:1fr}}
 </style>`;
 
 for (const route of routes) {
@@ -492,18 +647,11 @@ for (const route of routes) {
   let html = replaceTitle(baseHtml, route.title);
   html = replaceMeta(html, "name", "description", route.description);
   html = replaceMeta(html, "name", "keywords", route.keywords);
-  html = replaceMeta(
-    html,
-    "name",
-    "robots",
-    "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
-  );
-  html = replaceMeta(
-    html,
-    "name",
-    "googlebot",
-    "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
-  );
+  const routeRobots = route.noindex
+    ? "noindex, follow, noarchive"
+    : "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1";
+  html = replaceMeta(html, "name", "robots", routeRobots);
+  html = replaceMeta(html, "name", "googlebot", routeRobots);
   html = replaceMeta(html, "property", "og:title", route.title);
   html = replaceMeta(html, "property", "og:description", route.description);
   html = replaceMeta(html, "property", "og:url", canonicalUrl);
@@ -524,6 +672,41 @@ for (const route of routes) {
   await writeFile(path.join(distDir, outputFile), html, "utf8");
 }
 
+const productOutputDir = path.join(distDir, "products");
+await mkdir(productOutputDir, { recursive: true });
+let productPages = 0;
+for (const product of products.filter((item) => item?.slug && item?.isActive !== false)) {
+  const canonicalUrl = `${SITE_URL}${productPath(product)}`;
+  const title = product.metaTitle || `${product.name} | Kesara Bathik`;
+  const description = productDescription(product);
+  const image = productImage(product);
+  let html = replaceTitle(baseHtml, title);
+  html = replaceMeta(html, "name", "description", description);
+  html = replaceMeta(html, "name", "keywords", `${product.name}, Kesara Bathik, Sri Lankan batik, Sri Lankan bathik`);
+  html = replaceMeta(html, "name", "robots", "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1");
+  html = replaceMeta(html, "name", "googlebot", "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1");
+  html = replaceMeta(html, "property", "og:title", title);
+  html = replaceMeta(html, "property", "og:description", description);
+  html = replaceMeta(html, "property", "og:url", canonicalUrl);
+  html = replaceMeta(html, "property", "og:image", image);
+  html = replaceMeta(html, "name", "twitter:title", title);
+  html = replaceMeta(html, "name", "twitter:description", description);
+  html = replaceMeta(html, "name", "twitter:image", image);
+  html = setCanonical(html, canonicalUrl);
+  html = html.replace(
+    "</head>",
+    `  ${snapshotStyle}
+  <script type="application/ld+json">${JSON.stringify(productSchema(product))}</script>
+</head>`,
+  );
+  html = html.replace(
+    '<div id="root"></div>',
+    `<div id="root" data-prerendered="true">${productSnapshot(product)}</div>`,
+  );
+  await writeFile(path.join(productOutputDir, `${product.slug}.html`), html, "utf8");
+  productPages += 1;
+}
+
 console.log(
-  `[prerender] Wrote ${routes.length} clean route snapshots using ${products.length} products`,
+  `[prerender] Wrote ${routes.length} route snapshots and ${productPages} product snapshots using ${products.length} products`,
 );
