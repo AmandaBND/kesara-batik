@@ -13,6 +13,7 @@ connectDB();
 
 const app = express();
 
+app.disable("x-powered-by");
 app.set("trust proxy", 1);
 // Security
 app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
@@ -34,10 +35,69 @@ app.use("/api/", limiter);
 // Body Parser
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
-app.use(morgan("dev"));
+
+// The public storefront is hosted on Vercel. Every response from this Railway
+// service should stay out of search indexes, even when a crawler ignores the
+// backend robots.txt file.
+app.use((req, res, next) => {
+  res.set("X-Robots-Tag", "noindex, nofollow, noarchive");
+  next();
+});
+
+// Internet-facing services are continuously scanned for unrelated admin,
+// crypto, CMS and malware paths. They should still receive a real 404, but the
+// known high-volume scanner noise does not need to flood Railway deploy logs.
+const scannerNoisePattern = new RegExp(
+  [
+    "^/(?:app|h5|wap|pc|mobile|im|apps|html|page|xy|syn|dwcc|jym-wn|snake)(?:/|$)",
+    "^/(?:index/login|home/index|f/user/index|join_room|platform|categories)$",
+    "^/(?:zz\\.php|api\\.php|AppInfo\\.aspx|user/reg\\.php)$",
+    "^/(?:config(?:\\.js|\\.json)?|conf\\.js|lang\\.js|site\\.js|style\\.css)$",
+    "^/(?:static|dist|js|css|img|S1|new|nyyh|CCB)(?:/|$)",
+  ].join("|"),
+  "i",
+);
+
+app.use(
+  morgan("dev", {
+    skip: (req, res) =>
+      process.env.NODE_ENV === "production" &&
+      res.statusCode === 404 &&
+      scannerNoisePattern.test(req.path),
+  }),
+);
 
 // Static
 app.use("/uploads", express.static("uploads"));
+
+const healthPayload = () => ({
+  status: "OK",
+  name: "Kesara Bathik API",
+  version: "1.0.0",
+  timestamp: new Date().toISOString(),
+});
+
+// Friendly service and health endpoints. These remove legitimate Railway/root
+// 404 checks without pretending that unrelated scanner paths exist.
+app.get("/", (req, res) =>
+  res.status(200).json({
+    name: "Kesara Bathik API",
+    status: "online",
+    health: "/api/health",
+    storefront: "https://www.kesarabathik.com",
+  }),
+);
+app.get(["/health", "/health-check", "/healthz"], (req, res) =>
+  res.status(200).json(healthPayload()),
+);
+app.get(["/api", "/api/"], (req, res) =>
+  res.status(200).json({
+    name: "Kesara Bathik API",
+    status: "online",
+    health: "/api/health",
+  }),
+);
+app.get("/favicon.ico", (req, res) => res.status(204).end());
 
 // Prevent the Railway API hostname from being indexed as a separate website.
 // The public shop robots.txt is served by Vercel at kesarabathik.com.
@@ -59,7 +119,7 @@ app.use("/api/currency", require("./routes/currencyRoutes"));
 
 // Health Check
 app.get("/api/health", (req, res) =>
-  res.json({ status: "OK", name: "Kesara Batik API", version: "1.0.0" }),
+  res.status(200).json(healthPayload()),
 );
 
 // 404
