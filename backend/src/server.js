@@ -7,6 +7,10 @@ const rateLimit = require("express-rate-limit");
 const cron = require("node-cron");
 const connectDB = require("./config/db");
 const { logEmailConfiguration } = require("./services/emailService");
+const {
+  isPublicRenderingResource,
+  buildBackendRobotsTxt,
+} = require("./config/robotsPolicy");
 
 dotenv.config();
 connectDB();
@@ -36,11 +40,14 @@ app.use("/api/", limiter);
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
-// The public storefront is hosted on Vercel. Every response from this Railway
-// service should stay out of search indexes, even when a crawler ignores the
-// backend robots.txt file.
+// The public storefront is hosted on Vercel, so API responses must never be
+// indexed as standalone search results. Public read-only JSON endpoints remain
+// crawlable because Googlebot needs them to render the React storefront.
 app.use((req, res, next) => {
-  res.set("X-Robots-Tag", "noindex, nofollow, noarchive");
+  const robotsHeader = isPublicRenderingResource(req)
+    ? "noindex, noarchive"
+    : "noindex, nofollow, noarchive";
+  res.set("X-Robots-Tag", robotsHeader);
   next();
 });
 
@@ -99,10 +106,11 @@ app.get(["/api", "/api/"], (req, res) =>
 );
 app.get("/favicon.ico", (req, res) => res.status(204).end());
 
-// Prevent the Railway API hostname from being indexed as a separate website.
+// Prevent the Railway API hostname from being indexed as a separate website,
+// while allowing only the public GET resources used during storefront rendering.
 // The public shop robots.txt is served by Vercel at kesarabathik.com.
 app.get("/robots.txt", (req, res) => {
-  res.type("text/plain").send("User-agent: *\nDisallow: /\n");
+  res.type("text/plain").send(buildBackendRobotsTxt());
 });
 
 // Routes
