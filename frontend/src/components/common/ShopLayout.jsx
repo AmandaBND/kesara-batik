@@ -90,7 +90,7 @@ export default function ShopLayout() {
                   so the Latin brand name stays visible at every width. */}
               <div className="block">
                 <div className="hidden font-display text-lg font-bold leading-tight text-deep sm:block">කේසර බතික්</div>
-                <div className="text-[10px] font-medium tracking-widest text-gold sm:text-xs">KESARA BATHIK</div>
+                <div data-seo-brand="header" className="text-[10px] font-medium tracking-widest text-gold sm:text-xs">KESARA BATHIK</div>
               </div>
             </Link>
 
@@ -211,7 +211,7 @@ export default function ShopLayout() {
               <img src="/logo.png" alt="Kesara Bathik" className="h-12 w-12 object-contain" />
               <div>
                 <div className="font-display text-white text-lg font-bold">කේසර බතික්</div>
-                <div className="text-gold text-xs tracking-widest">KESARA BATHIK</div>
+                <div data-seo-brand="footer" className="text-gold text-xs tracking-widest">KESARA BATHIK</div>
               </div>
             </div>
             <p className="text-sm leading-relaxed text-gray-500">Authentic Sri Lankan batik and bathik sarees, shirts, sarongs, frocks, family kits and accessories. Shop current bathik prices in Sri Lanka and order worldwide.</p>

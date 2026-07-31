@@ -88,13 +88,26 @@ if (!renderedH1) {
   if (!/Kesara Bathik/.test(visibleH1)) {
     failures.push('HomePage.jsx: rendered H1 has no visible "Kesara Bathik" text (sr-only or aria-hidden does not count)')
   }
+  if (!renderedH1.includes('data-seo-brand="hero"')) {
+    failures.push('HomePage.jsx: rendered H1 is missing the visible brand regression marker')
+  }
   if (/<img[^>]*\balt=""/.test(renderedH1)) {
     failures.push('HomePage.jsx: rendered H1 contains an image with empty alt text')
+  }
+  if (!/alt="කේසර බතික් – Kesara Bathik"/.test(renderedH1)) {
+    failures.push('HomePage.jsx: Sinhala title image does not connect the Sinhala and Latin brand names')
   }
 }
 
 if (/className="hidden sm:block"[\s\S]{0,400}KESARA BATHIK/.test(layoutSource)) {
   failures.push('ShopLayout.jsx: header brand name is hidden at mobile width, which is the width Googlebot renders')
+}
+
+if (!layoutSource.includes('data-seo-brand="header"')) {
+  failures.push('ShopLayout.jsx: mobile-visible header brand regression marker is missing')
+}
+if (!layoutSource.includes('data-seo-brand="footer"')) {
+  failures.push('ShopLayout.jsx: footer brand regression marker is missing')
 }
 
 if (failures.length) {

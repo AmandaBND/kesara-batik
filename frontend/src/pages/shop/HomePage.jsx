@@ -355,13 +355,13 @@ export default function HomePage() {
               </p>
 
               {/* Hero title */}
-              <h1 className="mb-4">
+              <h1 className="mb-4" aria-label="Kesara Bathik Fashion">
                 {/* Sinhala brand name. The alt text carries the brand, so the
                     heading is not empty for crawlers that ignore CSS-hidden text. */}
                 <span className="relative block aspect-[1009/734] w-[205px] overflow-hidden sm:w-[220px] lg:w-[235px] xl:w-[245px]">
                   <img
                     src={homePageText}
-                    alt="කේසර බතික්"
+                    alt="කේසර බතික් – Kesara Bathik"
                     className="absolute left-[-12.1%] top-[-30.7%] block w-[124.2%] max-w-none select-none"
                     draggable="false"
                   />
@@ -371,7 +371,7 @@ export default function HomePage() {
                     part of the H1 Google reliably weights for the brand query,
                     so it must not be sr-only, aria-hidden or an image. */}
                 <span className="mt-1 block font-display text-3xl font-bold leading-tight text-white lg:text-4xl">
-                  Kesara Bathik Fashion
+                  <span data-seo-brand="hero">Kesara Bathik</span> Fashion
                 </span>
               </h1>
 
